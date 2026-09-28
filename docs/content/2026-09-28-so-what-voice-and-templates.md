@@ -246,6 +246,10 @@ Specified in spec §7.4: fixed data in `web/lib/tips.ts`, keyed by risk type, sh
 | Map legend, dashed pin with wave glyph | Projected coastal flooding by mid-century |
 | Card heading (spec §7.4) | {Risk} — {Level}, e.g. "Heat — High"; "Sea level rise — Projected" |
 | Distances | "1.4 miles", never "1.4 mi" |
+| Disclosure for detail and full sources, phones only (spec §7.4) | About this data |
+| Short source line, phones (always visible) | Source: CalEPA · Cal-Adapt · Source: CalEnviroScreen (OEHHA) · Source: CAL FIRE · Source: USGS CoSMoS · OPC |
+| At-a-glance chips (2+ flagged cards) | {Risk} — {Level}, e.g. "Heat — High"; nav label "Risks at this place" |
+| Back link on place pages | Places near here |
 
 ---
 

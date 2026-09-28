@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>So What? — place panel wireframes</title>
+<title>So What? — glyph ideas</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%234338ca'/%3E%3C/svg%3E">
 <style>
 /* ═══════════════════════════════════════════════════════════════════
@@ -930,91 +930,58 @@ body[data-view="proto"] [data-go]:hover {
 }
 body[data-view="slides"] .note-group:not(.active) { display: none; }
 
-/* ═══ per-artifact layout — So What? place panel (tokens only) ═══ */
-.wf h1, .wf h2, .wf h3, .wf p { margin: 0; }
-.wf ol, .wf ul { list-style: none; padding: 0; margin: 0; }
-.wf fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
-.wf legend { padding: 0; }
-.wf a { color: inherit; text-decoration: none; }
+/* ═══ per-artifact — level & risk glyph ideas (tokens only) ═══ */
+.wf h2, .wf p { margin: 0; }
+.scale-row { display: flex; align-items: center; gap: var(--sp-3); }
+.scale-row + .scale-row { margin-top: var(--sp-3); }
+.scale-row .lbl { width: var(--sp-18); }
 
-/* app chrome inside the screen */
-.app-header { display: flex; align-items: center; gap: var(--sp-6);
-  padding: var(--sp-3) var(--sp-6); border-bottom: 1px solid var(--w-border); }
-.skip { font-size: var(--t-xs); line-height: var(--t-xs-lh); color: var(--w-ink2);
-  border: 1px dashed var(--w-border); border-radius: var(--r-sm); padding: 0 var(--sp-2); }
-.filter-bar { display: flex; align-items: center; gap: var(--sp-6); flex-wrap: wrap;
-  padding: var(--sp-2) var(--sp-6); border-bottom: 1px solid var(--w-border); }
-.filter-bar .choices { display: flex; gap: var(--sp-4); flex-wrap: wrap; }
-.zip { display: flex; align-items: flex-end; gap: var(--sp-2); }
-.zip .field { width: calc(var(--sp-23) * 2); }
-
-/* desktop: side column + map */
-.app-body { display: grid; grid-template-columns: calc(var(--sp-23) * 5) 1fr; }
-.side { border-right: 1px solid var(--w-border); padding: var(--sp-6); }
-.map { position: relative; min-height: calc(var(--sp-23) * 9); background: var(--w-surface); }
-.map-label { position: absolute; top: var(--sp-4); left: var(--sp-4);
-  background: var(--w-canvas); border: 1px solid var(--w-border);
-  border-radius: var(--r-md); padding: var(--sp-1) var(--sp-2); }
-.map-zoom { position: absolute; top: var(--sp-4); right: var(--sp-4);
-  display: flex; flex-direction: column; gap: var(--sp-2); }
-.map-legend { position: absolute; bottom: var(--sp-10); right: var(--sp-4);
-  width: calc(var(--sp-23) * 3); }
-.map-attrib { position: absolute; bottom: var(--sp-2); right: var(--sp-4); }
-.pin { position: absolute; width: var(--ic-lg); height: var(--ic-lg);
-  border-radius: var(--r-full); background: var(--w-canvas);
-  border: 2px solid var(--w-ink1); display: flex; align-items: center; justify-content: center; }
-.pin.projected { border-style: dashed; }
-.pin.selected { width: var(--ic-xl); height: var(--ic-xl); border-color: var(--w-accent); }
-
-/* level glyph: 3-slot ascending signal meter — filled slots = level (idea #1) */
+/* #1 signal meter: 3 ascending slots, filled = level */
 .meter { display: inline-flex; align-items: flex-end; gap: var(--sp-1); }
 .meter span { display: block; width: var(--sp-1); border: 1px solid var(--w-ink1); border-radius: var(--r-sm); }
 .meter span:nth-child(1) { height: var(--sp-2); }
 .meter span:nth-child(2) { height: var(--sp-3); }
 .meter span:nth-child(3) { height: var(--sp-4); }
 .meter span.on { background: var(--w-ink1); }
-.risk-name { display: inline-flex; align-items: center; gap: var(--sp-2); }
-.about { margin-top: var(--sp-2); }
-.level { display: inline-flex; align-items: center; gap: var(--sp-2); }
 
-/* place panel */
-.back { display: inline-flex; align-items: center; gap: var(--sp-1); }
-.place-head { margin-top: var(--sp-4); }
-.place-head .row { margin-top: var(--sp-1); }
-.panel-actions { margin-top: var(--sp-3); }
-.glance { display: flex; gap: var(--sp-2); flex-wrap: wrap; margin-top: var(--sp-4); }
-.risk { border: 1px solid var(--w-border); border-radius: var(--r-lg);
-  padding: var(--sp-4); margin-top: var(--sp-4); }
+/* #2 segmented gauge: 3 horizontal segments */
+.gauge { display: inline-flex; gap: var(--sp-1); }
+.gauge span { display: block; width: var(--sp-4); height: var(--sp-2);
+  border: 1px solid var(--w-ink1); border-radius: var(--r-sm); }
+.gauge span.on { background: var(--w-ink1); }
+
+/* #3 dot scale */
+.dots3 { display: inline-flex; gap: var(--sp-1); }
+.dots3 span { display: block; width: var(--sp-2); height: var(--sp-2);
+  border: 1px solid var(--w-ink1); border-radius: var(--r-full); }
+.dots3 span.on { background: var(--w-ink1); }
+
+/* pins */
+.pins { display: flex; gap: var(--sp-4); align-items: center; }
+.pin { width: var(--ic-xl); height: var(--ic-xl); border-radius: var(--r-full);
+  background: var(--w-canvas); border: 2px solid var(--w-ink1);
+  display: inline-flex; align-items: center; justify-content: center; }
+.pin .t-caption { font-weight: 700; }
+
+/* #5 shapes */
+.shape { display: inline-block; width: var(--ic-md); height: var(--ic-md); border: 2px solid var(--w-ink1); }
+.shape.circle { border-radius: var(--r-full); }
+.shape.square { border-radius: var(--r-sm); }
+.shape.diamond { transform: rotate(45deg) scale(0.8); }
+
+/* #6–8 anatomy */
 .risk-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.risk-name { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.level { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .sowhat { font-size: var(--t-lg); line-height: var(--t-xl-lh); margin-top: var(--sp-3); }
-.trend { margin-top: var(--sp-3); padding: var(--sp-3); background: var(--w-surface);
-  border: 1px dashed var(--w-border); border-radius: var(--r-md); }
-.trend .badge { margin-bottom: var(--sp-2); }
-.detail { margin-top: var(--sp-3); }
-.source { margin-top: var(--sp-1); }
-.tip { margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--w-border); }
-.collapsed { justify-content: space-between; margin-top: var(--sp-4); }
-.lone-trend { margin-top: var(--sp-4); }
-.section-h { margin-top: var(--sp-8); margin-bottom: var(--sp-2); }
-.list-row .text-stack { gap: var(--sp-1); }
-
-/* mobile 320 */
-.m-top { padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--w-border); }
-.m-top .zip .field { width: auto; flex: 1; }
-.toggle { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); margin-top: var(--sp-3); }
-.m-filters { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--sp-2); margin-top: var(--sp-2); }
-.status { margin: var(--sp-3) 0 var(--sp-2); }
-.m-map { position: relative; min-height: calc(var(--sp-23) * 5); background: var(--w-surface); }
-.m-map .map-zoom { top: var(--sp-3); right: var(--sp-3); }
-.m-legend-btn { position: absolute; bottom: var(--sp-3); left: var(--sp-3); }
-.anchor { position: relative; }
+.glance { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 </style>
 </head>
 <body data-view="grid">
   <header class="board-header">
     <div class="board-id">
-      <h1 class="board-title">So What? — place panel wireframes</h1>
-      <p class="board-meta">Intent /wireframe · September 2026 · Full-page wireframes · spec rev. 8 · illustrative places and numbers</p>
+      <h1 class="board-title">So What? — level &amp; risk glyph ideas</h1>
+      <p class="board-meta">Intent /wireframe · September 2026 · Idea board (thumbnails) · react to the mechanisms, not the drawing</p>
     </div>
     <div class="board-controls">
       <nav class="view-toggle" aria-label="View">
@@ -1028,558 +995,162 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
   </header>
 
   <nav class="slide-nav">
-    <span class="slide-section">Desktop — place panel</span>
-    <span class="slide-pos">1/6</span>
+    <span class="slide-section">Level glyph</span>
+    <span class="slide-pos">1/8</span>
     <span class="nav-hint slides-hint">← → to page · Esc returns to grid</span>
     <button data-prev aria-label="Previous"></button>
     <button data-next aria-label="Next"></button>
   </nav>
 
-  <!-- ═══════════════════ DESKTOP ═══════════════════ -->
-  <section class="board-section" data-section="Desktop — place panel (1440)">
-    <h2 class="section-label">Desktop — place panel (1440)</h2>
+  <section class="board-section" data-section="Level glyph — Elevated / High / Severe without colour">
+    <h2 class="section-label">Level glyph — Elevated / High / Severe without colour</h2>
     <div class="frame-grid">
 
-      <!-- D1 featured bus stop -->
-      <article class="frame" id="scr-d-featured" style="width: 1440px">
-        <h3 class="frame-plate"><span>Featured stop — heat high + trend, air elevated, fire low</span><span class="frame-pos">1/6</span></h3>
+      <article class="frame" style="width: 360px">
         <div class="wf">
-          <header class="app-header">
-            <a class="skip" href="#">Skip to main content</a>
-            <p class="t-title">So What?</p>
-            <p class="t-small muted grow">Climate risk at LA County places</p>
-            <a class="link t-small" href="#">About &amp; sources</a>
-          </header>
-          <div class="filter-bar">
-            <fieldset class="row">
-              <legend class="t-small muted">Show risks</legend>
-              <div class="choices">
-                <label class="choice t-small"><input type="checkbox" checked> Air</label>
-                <label class="choice t-small"><input type="checkbox" checked> Heat</label>
-                <label class="choice t-small"><input type="checkbox" checked> Wildfire</label>
-                <label class="choice t-small"><input type="checkbox" checked> Sea level rise (projected)</label>
-              </div>
-            </fieldset>
-            <div class="zip grow">
-              <label class="field"><span class="field-label">Zip code</span><input class="input" inputmode="numeric" autocomplete="postal-code" placeholder="e.g. 90012"></label>
-              <button class="btn btn-secondary">Search</button>
-              <button class="btn btn-ghost">Use my location</button>
+          <div class="vignette"><div class="float">
+            <div class="scale-row"><span class="meter" aria-hidden="true"><span class="on"></span><span></span><span></span></span><span class="t-small lbl">Elevated</span></div>
+            <div class="scale-row"><span class="meter" aria-hidden="true"><span class="on"></span><span class="on"></span><span></span></span><span class="t-small lbl">High</span></div>
+            <div class="scale-row"><span class="meter" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span></span><span class="t-small lbl">Severe</span></div>
+            <div class="pins" style="margin-top: var(--sp-4);">
+              <span class="pin"><span class="meter"><span class="on"></span><span></span><span></span></span></span>
+              <span class="pin"><span class="meter"><span class="on"></span><span class="on"></span><span></span></span></span>
+              <span class="pin"><span class="meter"><span class="on"></span><span class="on"></span><span class="on"></span></span></span>
             </div>
-          </div>
-          <div class="app-body">
-            <main class="side">
-              <div class="anchor">
-                <a class="back link t-small" href="#"><span class="glyph glyph-sm gl-arrow-left"></span>Places near here</a>
-                <div class="note-marker" style="top: calc(var(--sp-1) * -1); left: calc(var(--sp-23) + var(--sp-10));">1</div>
-              </div>
-              <div class="place-head">
-                <h1 class="t-display">Harbor Ave / 3rd St</h1>
-                <div class="row t-small muted"><span>Bus stop</span><span>·</span><span>0.3 miles from your location</span></div>
-              </div>
-              <div class="row panel-actions">
-                <button class="btn btn-secondary btn-sm">Copy link</button>
-                <button class="btn btn-ghost btn-sm">Show on map</button>
-              </div>
-              <nav class="glance" aria-label="Risks at this place">
-                <a class="chip" href="#d1-heat"><span class="icon icon-sm" aria-hidden="true"></span>Heat — High</a>
-                <a class="chip" href="#d1-air"><span class="icon icon-sm" aria-hidden="true"></span>Air — Elevated</a>
-              </nav>
-
-              <section class="risk anchor" aria-labelledby="d1-heat">
-                <div class="note-marker" style="top: calc(var(--sp-3) * -1); right: calc(var(--sp-3) * -1);">2</div>
-                <div class="risk-head">
-                  <h2 id="d1-heat" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Heat</h2>
-                  <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span class="on"></span><span></span></span><span class="badge badge-muted">High</span></span>
-                </div>
-                <p class="sowhat">This neighborhood traps more heat from pavement and buildings than 94% of LA County neighborhoods. A long summer wait in direct sun can cause heat illness, especially for older riders.</p>
-                <div class="trend anchor">
-                  <div class="note-marker" style="top: calc(var(--sp-3) * -1); right: calc(var(--sp-3) * -1);">3</div>
-                  <span class="badge badge-muted">Projected</span>
-                  <p class="t-body">And it's getting hotter: this area is projected to go from about 6 to 20 extreme-heat days a year by mid-century.</p>
-                </div>
-                <p class="detail t-small muted">Urban Heat Island Index: 94th percentile in LA County</p>
-                <p class="source t-caption muted">Source: <a class="link" href="#">CalEPA Urban Heat Island Index</a> · Projection: <a class="link" href="#">Cal-Adapt LOCA2</a>, SSP2-4.5, 1981–2010 vs. 2035–2064</p>
-                <p class="tip t-small">On hot days, cooling centers are open across LA County. <a class="link" href="#">Find one near you (LA County)</a></p>
-              </section>
-
-              <section class="risk" aria-labelledby="d1-air">
-                <div class="risk-head">
-                  <h2 id="d1-air" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Air</h2>
-                  <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span></span><span></span></span><span class="badge badge-muted">Elevated</span></span>
-                </div>
-                <p class="sowhat">Fine-particle air pollution here is higher than in 81% of California neighborhoods. Riders breathe it every time they wait, and it adds up over years of commuting.</p>
-                <p class="detail t-small muted">PM2.5: 81st percentile · Diesel PM: 77th percentile (statewide)</p>
-                <p class="source t-caption muted">Source: <a class="link" href="#">CalEnviroScreen 4.0 (OEHHA)</a></p>
-                <p class="tip t-small">Check today's air quality before long waits or outdoor exercise. <a class="link" href="#">AirNow</a></p>
-              </section>
-
-              <div class="anchor">
-                <button class="btn btn-secondary btn-block collapsed" aria-expanded="false">Not flagged today for wildfire <span class="glyph glyph-sm gl-chevron"></span></button>
-                <div class="note-marker" style="top: calc(var(--sp-2) * -1); right: calc(var(--sp-3) * -1);">4</div>
-              </div>
-
-              <h2 class="t-heading section-h">Nearby places</h2>
-              <ol class="list">
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Ave / 5th St</span><span class="t-small muted">Bus stop · Heat: High, Air: Elevated</span></span><span class="t-small muted">0.1 miles</span></a></li>
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Third Street Playground</span><span class="t-small muted">Playground · Heat: High</span></span><span class="t-small muted">0.2 miles</span></a></li>
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Elementary School</span><span class="t-small muted">School · Air: Elevated, Heat: Elevated</span></span><span class="t-small muted">0.4 miles</span></a></li>
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Oak Park</span><span class="t-small muted">Park · Heat: Elevated</span></span><span class="t-small muted">0.6 miles</span></a></li>
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Ave / 9th St</span><span class="t-small muted">Bus stop · Air: Elevated</span></span><span class="t-small muted">0.7 miles</span></a></li>
-              </ol>
-            </main>
-
-            <div class="map anchor" role="region" aria-label="Map">
-              <p class="map-label t-small">Map · arrow keys pan · + / − zoom</p>
-              <div class="note-marker" style="top: var(--sp-3); left: calc(var(--sp-23) * 3);">5</div>
-              <div class="map-zoom">
-                <button class="btn btn-secondary btn-sm">Zoom in</button>
-                <button class="btn btn-secondary btn-sm">Zoom out</button>
-              </div>
-              <span class="pin selected" style="top: 44%; left: 40%;" aria-hidden="true"><span class="meter"><span class="on"></span><span class="on"></span><span></span></span></span>
-              <span class="pin" style="top: 40%; left: 46%;" aria-hidden="true"><span class="meter"><span class="on"></span><span class="on"></span><span></span></span></span>
-              <span class="pin" style="top: 52%; left: 36%;" aria-hidden="true"><span class="meter"><span class="on"></span><span></span><span></span></span></span>
-              <span class="pin" style="top: 30%; left: 55%;" aria-hidden="true"><span class="meter"><span class="on"></span><span class="on"></span><span class="on"></span></span></span>
-              <span class="pin" style="top: 60%; left: 50%;" aria-hidden="true"><span class="meter"><span class="on"></span><span></span><span></span></span></span>
-              <span class="pin projected" style="top: 70%; left: 22%;" aria-hidden="true"><span class="icon icon-sm" aria-hidden="true"></span></span>
-              <div class="card map-legend">
-                <div class="card-body stack">
-                  <p class="t-body-strong">Legend</p>
-                  <p class="row t-small"><span class="meter"><span class="on"></span><span></span><span></span></span> Elevated</p>
-                  <p class="row t-small"><span class="meter"><span class="on"></span><span class="on"></span><span></span></span> High</p>
-                  <p class="row t-small"><span class="meter"><span class="on"></span><span class="on"></span><span class="on"></span></span> Severe</p>
-                  <p class="row t-small"><span class="icon icon-sm" aria-hidden="true"></span> Dashed outline: projected coastal flooding by mid-century</p>
-                  <p class="t-caption muted">Only places flagged for the selected risks are shown.</p>
-                </div>
-              </div>
-              <p class="map-attrib t-caption muted">Tiles © provider · © OpenStreetMap contributors</p>
-            </div>
+          </div></div>
+          <div class="idea-caption">
+            <span class="idea-num">#1</span>
+            <p class="idea-title">Signal meter (three ascending slots)</p>
+            <p class="idea-desc">Always three slots of rising height; the filled ones are the level. The empty slots show where on the scale a place sits, and unequal heights can't read as "pause". Familiar from signal-strength icons, and fits inside a round pin. Recommended.</p>
           </div>
         </div>
       </article>
 
-      <!-- D2 coastal park -->
-      <article class="frame" id="scr-d-coastal" style="width: 1440px">
-        <h3 class="frame-plate"><span>Coastal park — nothing flagged today + sea level rise</span><span class="frame-pos">2/6</span></h3>
+      <article class="frame" style="width: 360px">
         <div class="wf">
-          <header class="app-header">
-            <a class="skip" href="#">Skip to main content</a>
-            <p class="t-title">So What?</p>
-            <p class="t-small muted grow">Climate risk at LA County places</p>
-            <a class="link t-small" href="#">About &amp; sources</a>
-          </header>
-          <div class="filter-bar">
-            <fieldset class="row">
-              <legend class="t-small muted">Show risks</legend>
-              <div class="choices">
-                <label class="choice t-small"><input type="checkbox" checked> Air</label>
-                <label class="choice t-small"><input type="checkbox" checked> Heat</label>
-                <label class="choice t-small"><input type="checkbox" checked> Wildfire</label>
-                <label class="choice t-small"><input type="checkbox" checked> Sea level rise (projected)</label>
-              </div>
-            </fieldset>
-            <div class="zip grow">
-              <label class="field"><span class="field-label">Zip code</span><input class="input" inputmode="numeric" autocomplete="postal-code" placeholder="e.g. 90012"></label>
-              <button class="btn btn-secondary">Search</button>
-              <button class="btn btn-ghost">Use my location</button>
+          <div class="vignette"><div class="float">
+            <div class="scale-row"><span class="gauge" aria-hidden="true"><span class="on"></span><span></span><span></span></span><span class="t-small lbl">Elevated</span></div>
+            <div class="scale-row"><span class="gauge" aria-hidden="true"><span class="on"></span><span class="on"></span><span></span></span><span class="t-small lbl">High</span></div>
+            <div class="scale-row"><span class="gauge" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span></span><span class="t-small lbl">Severe</span></div>
+            <div class="pins" style="margin-top: var(--sp-4);">
+              <span class="pin"><span class="gauge"><span class="on"></span><span></span><span></span></span></span>
             </div>
-          </div>
-          <div class="app-body">
-            <main class="side">
-              <a class="back link t-small" href="#"><span class="glyph glyph-sm gl-arrow-left"></span>Places near here</a>
-              <div class="place-head">
-                <h1 class="t-display">Seaside Park</h1>
-                <div class="row t-small muted"><span>Park</span><span>·</span><span>1.2 miles from your location</span></div>
-              </div>
-              <div class="row panel-actions">
-                <button class="btn btn-secondary btn-sm">Copy link</button>
-                <button class="btn btn-ghost btn-sm">Show on map</button>
-              </div>
-
-              <section class="risk anchor" aria-labelledby="d2-heat">
-                <div class="note-marker" style="top: calc(var(--sp-3) * -1); right: calc(var(--sp-3) * -1);">1</div>
-                <div class="risk-head">
-                  <h2 id="d2-heat" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Heat</h2>
-                  <span class="level"><span class="badge badge-muted">Low</span></span>
-                </div>
-                <p class="sowhat">This neighborhood isn't among the 25% of LA County neighborhoods that trap the most heat.</p>
-                <div class="trend">
-                  <span class="badge badge-muted">Projected</span>
-                  <p class="t-body">And it's getting hotter: this area is projected to go from about 2 to 7 extreme-heat days a year by mid-century.</p>
-                </div>
-                <p class="detail t-small muted">Urban Heat Island Index: 38th percentile in LA County</p>
-                <p class="source t-caption muted">Source: <a class="link" href="#">CalEPA Urban Heat Island Index</a> · Projection: <a class="link" href="#">Cal-Adapt LOCA2</a>, SSP2-4.5, 1981–2010 vs. 2035–2064</p>
-              </section>
-
-              <button class="btn btn-secondary btn-block collapsed" aria-expanded="false">Not flagged today for air or wildfire <span class="glyph glyph-sm gl-chevron"></span></button>
-
-              <section class="risk anchor" aria-labelledby="d2-sea">
-                <div class="note-marker" style="top: calc(var(--sp-3) * -1); right: calc(var(--sp-3) * -1);">2</div>
-                <div class="risk-head">
-                  <h2 id="d2-sea" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Sea level rise</h2>
-                  <span class="level"><span class="badge badge-muted">Projected</span></span>
-                </div>
-                <p class="sowhat">By mid-century, with about 1 foot of sea level rise, a typical winter storm could flood this park. The park may close on those days.</p>
-                <p class="detail t-small muted">USGS CoSMoS: 1 ft sea level rise, annual storm · OPC Intermediate scenario, 2040–2060</p>
-                <p class="source t-caption muted">Source: <a class="link" href="#">USGS CoSMoS</a> · <a class="link" href="#">OPC Sea Level Rise Guidance (2024)</a></p>
-                <p class="tip t-small">See how rising seas and storms could affect the coast near you. <a class="link" href="#">Our Coast, Our Future</a></p>
-              </section>
-
-              <h2 class="t-heading section-h">Nearby places</h2>
-              <ol class="list">
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Seaside Playground</span><span class="t-small muted">Playground · Sea level rise: Projected</span></span><span class="t-small muted">0.1 miles</span></a></li>
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Ocean Blvd / Pier Ave</span><span class="t-small muted">Bus stop · Sea level rise: Projected</span></span><span class="t-small muted">0.3 miles</span></a></li>
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Pier Ave / Main St</span><span class="t-small muted">Bus stop · Air: Elevated</span></span><span class="t-small muted">0.8 miles</span></a></li>
-              </ol>
-            </main>
-
-            <div class="map" role="region" aria-label="Map">
-              <p class="map-label t-small">Map · arrow keys pan · + / − zoom</p>
-              <div class="map-zoom">
-                <button class="btn btn-secondary btn-sm">Zoom in</button>
-                <button class="btn btn-secondary btn-sm">Zoom out</button>
-              </div>
-              <span class="pin selected projected" style="top: 48%; left: 30%;" aria-hidden="true"><span class="icon icon-sm" aria-hidden="true"></span></span>
-              <span class="pin projected" style="top: 44%; left: 26%;" aria-hidden="true"><span class="icon icon-sm" aria-hidden="true"></span></span>
-              <span class="pin projected" style="top: 56%; left: 33%;" aria-hidden="true"><span class="icon icon-sm" aria-hidden="true"></span></span>
-              <span class="pin" style="top: 40%; left: 48%;" aria-hidden="true"><span class="meter"><span class="on"></span><span></span><span></span></span></span>
-              <div class="card map-legend">
-                <div class="card-body stack">
-                  <p class="t-body-strong">Legend</p>
-                  <p class="row t-small"><span class="meter"><span class="on"></span><span></span><span></span></span> Elevated</p>
-                  <p class="row t-small"><span class="meter"><span class="on"></span><span class="on"></span><span></span></span> High</p>
-                  <p class="row t-small"><span class="meter"><span class="on"></span><span class="on"></span><span class="on"></span></span> Severe</p>
-                  <p class="row t-small"><span class="icon icon-sm" aria-hidden="true"></span> Dashed outline: projected coastal flooding by mid-century</p>
-                  <p class="t-caption muted">Only places flagged for the selected risks are shown.</p>
-                </div>
-              </div>
-              <p class="map-attrib t-caption muted">Tiles © provider · © OpenStreetMap contributors</p>
-            </div>
+          </div></div>
+          <div class="idea-caption">
+            <span class="idea-num">#2</span>
+            <p class="idea-title">Segmented gauge (horizontal)</p>
+            <p class="idea-desc">Three segments in a row, like a progress bar. Very clear in card headings, but too wide for a round pin: the segments shrink to slivers at map size, so pins would need a second encoding.</p>
           </div>
         </div>
       </article>
 
-      <!-- D3 all three flagged -->
-      <article class="frame" id="scr-d-all" style="width: 1440px">
-        <h3 class="frame-plate"><span>School flagged on all three of today's risks — densest case</span><span class="frame-pos">3/6</span></h3>
+      <article class="frame" style="width: 360px">
         <div class="wf">
-          <header class="app-header">
-            <a class="skip" href="#">Skip to main content</a>
-            <p class="t-title">So What?</p>
-            <p class="t-small muted grow">Climate risk at LA County places</p>
-            <a class="link t-small" href="#">About &amp; sources</a>
-          </header>
-          <div class="filter-bar">
-            <fieldset class="row">
-              <legend class="t-small muted">Show risks</legend>
-              <div class="choices">
-                <label class="choice t-small"><input type="checkbox" checked> Air</label>
-                <label class="choice t-small"><input type="checkbox" checked> Heat</label>
-                <label class="choice t-small"><input type="checkbox" checked> Wildfire</label>
-                <label class="choice t-small"><input type="checkbox" checked> Sea level rise (projected)</label>
-              </div>
-            </fieldset>
-            <div class="zip grow">
-              <label class="field"><span class="field-label">Zip code</span><input class="input" inputmode="numeric" autocomplete="postal-code" placeholder="e.g. 90012"></label>
-              <button class="btn btn-secondary">Search</button>
-              <button class="btn btn-ghost">Use my location</button>
-            </div>
+          <div class="vignette"><div class="float">
+            <div class="scale-row"><span class="dots3" aria-hidden="true"><span class="on"></span><span></span><span></span></span><span class="t-small lbl">Elevated</span></div>
+            <div class="scale-row"><span class="dots3" aria-hidden="true"><span class="on"></span><span class="on"></span><span></span></span><span class="t-small lbl">High</span></div>
+            <div class="scale-row"><span class="dots3" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span></span><span class="t-small lbl">Severe</span></div>
+          </div></div>
+          <div class="idea-caption">
+            <span class="idea-num">#3</span>
+            <p class="idea-title">Dot scale</p>
+            <p class="idea-desc">Three dots, filled to the level. Compact and simple, but dots are the language of star ratings, where more is better. Three filled dots can read as "top rated", the opposite of what Severe means.</p>
           </div>
-          <div class="app-body">
-            <main class="side">
-              <a class="back link t-small" href="#"><span class="glyph glyph-sm gl-arrow-left"></span>Places near here</a>
-              <div class="place-head">
-                <h1 class="t-display">Eastside Elementary School</h1>
-                <div class="row t-small muted"><span>School</span><span>·</span><span>2.4 miles from your location</span></div>
-              </div>
-              <div class="row panel-actions">
-                <button class="btn btn-secondary btn-sm">Copy link</button>
-                <button class="btn btn-ghost btn-sm">Show on map</button>
-              </div>
-              <nav class="glance anchor" aria-label="Risks at this place">
-                <a class="chip" href="#d3-air"><span class="icon icon-sm" aria-hidden="true"></span>Air — Severe</a>
-                <a class="chip" href="#d3-heat"><span class="icon icon-sm" aria-hidden="true"></span>Heat — High</a>
-                <a class="chip" href="#d3-fire"><span class="icon icon-sm" aria-hidden="true"></span>Wildfire — Elevated</a>
-                <div class="note-marker" style="top: calc(var(--sp-3) * -1); right: 0;">1</div>
-              </nav>
+        </div>
+      </article>
 
-              <section class="risk" aria-labelledby="d3-air">
-                <div class="risk-head">
-                  <h2 id="d3-air" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Air</h2>
-                  <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span></span><span class="badge badge-muted">Severe</span></span>
-                </div>
-                <p class="sowhat">Fine-particle air pollution here is higher than in 98% of California neighborhoods. Students breathe it all school day, and most deeply during recess and sports.</p>
-                <p class="detail t-small muted">PM2.5: 98th percentile · Diesel PM: 96th percentile (statewide)</p>
-                <p class="source t-caption muted">Source: <a class="link" href="#">CalEnviroScreen 4.0 (OEHHA)</a></p>
-                <p class="tip t-small">Check today's air quality before long waits or outdoor exercise. <a class="link" href="#">AirNow</a></p>
-              </section>
-
-              <section class="risk" aria-labelledby="d3-heat">
-                <div class="risk-head">
-                  <h2 id="d3-heat" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Heat</h2>
-                  <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span class="on"></span><span></span></span><span class="badge badge-muted">High</span></span>
-                </div>
-                <p class="sowhat">This neighborhood traps more heat from pavement and buildings than 92% of LA County neighborhoods. Heat makes it harder for students to learn and makes outdoor recess and sports riskier.</p>
-                <div class="trend">
-                  <span class="badge badge-muted">Projected</span>
-                  <p class="t-body">And it's getting hotter: this area is projected to go from about 9 to 27 extreme-heat days a year by mid-century.</p>
-                </div>
-                <p class="detail t-small muted">Urban Heat Island Index: 92nd percentile in LA County</p>
-                <p class="source t-caption muted">Source: <a class="link" href="#">CalEPA Urban Heat Island Index</a> · Projection: <a class="link" href="#">Cal-Adapt LOCA2</a>, SSP2-4.5, 1981–2010 vs. 2035–2064</p>
-                <p class="tip t-small">On hot days, cooling centers are open across LA County. <a class="link" href="#">Find one near you (LA County)</a></p>
-              </section>
-
-              <section class="risk anchor" aria-labelledby="d3-fire">
-                <div class="note-marker" style="top: calc(var(--sp-3) * -1); right: calc(var(--sp-3) * -1);">2</div>
-                <div class="risk-head">
-                  <h2 id="d3-fire" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Wildfire</h2>
-                  <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span></span><span></span></span><span class="badge badge-muted">Elevated</span></span>
-                </div>
-                <p class="sowhat">This school is in CAL FIRE's Moderate fire hazard zone. Fire could spread here, so families should know the school's evacuation and pickup plan.</p>
-                <p class="detail t-small muted">CAL FIRE Fire Hazard Severity Zone: Moderate</p>
-                <p class="source t-caption muted">Source: <a class="link" href="#">CAL FIRE Office of the State Fire Marshal</a>, 2025 LRA maps as adopted</p>
-                <p class="tip t-small">Sign up for emergency alerts and learn your evacuation zone. <a class="link" href="#">Ready LA County</a></p>
-              </section>
-
-              <h2 class="t-heading section-h">Nearby places</h2>
-              <ol class="list">
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Eastside Park</span><span class="t-small muted">Park · Air: Severe, Heat: High</span></span><span class="t-small muted">0.2 miles</span></a></li>
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Mission Rd / 1st St</span><span class="t-small muted">Bus stop · Air: Severe</span></span><span class="t-small muted">0.3 miles</span></a></li>
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Eastside Playground</span><span class="t-small muted">Playground · Heat: High, Air: High</span></span><span class="t-small muted">0.5 miles</span></a></li>
-              </ol>
-            </main>
-
-            <div class="map" role="region" aria-label="Map">
-              <p class="map-label t-small">Map · arrow keys pan · + / − zoom</p>
-              <div class="map-zoom">
-                <button class="btn btn-secondary btn-sm">Zoom in</button>
-                <button class="btn btn-secondary btn-sm">Zoom out</button>
-              </div>
-              <span class="pin selected" style="top: 46%; left: 52%;" aria-hidden="true"><span class="meter"><span class="on"></span><span class="on"></span><span class="on"></span></span></span>
-              <span class="pin" style="top: 42%; left: 57%;" aria-hidden="true"><span class="meter"><span class="on"></span><span class="on"></span><span class="on"></span></span></span>
-              <span class="pin" style="top: 52%; left: 47%;" aria-hidden="true"><span class="meter"><span class="on"></span><span class="on"></span><span class="on"></span></span></span>
-              <span class="pin" style="top: 36%; left: 45%;" aria-hidden="true"><span class="meter"><span class="on"></span><span class="on"></span><span></span></span></span>
-              <div class="card map-legend">
-                <div class="card-body stack">
-                  <p class="t-body-strong">Legend</p>
-                  <p class="row t-small"><span class="meter"><span class="on"></span><span></span><span></span></span> Elevated</p>
-                  <p class="row t-small"><span class="meter"><span class="on"></span><span class="on"></span><span></span></span> High</p>
-                  <p class="row t-small"><span class="meter"><span class="on"></span><span class="on"></span><span class="on"></span></span> Severe</p>
-                  <p class="row t-small"><span class="icon icon-sm" aria-hidden="true"></span> Dashed outline: projected coastal flooding by mid-century</p>
-                  <p class="t-caption muted">Only places flagged for the selected risks are shown.</p>
-                </div>
-              </div>
-              <p class="map-attrib t-caption muted">Tiles © provider · © OpenStreetMap contributors</p>
+      <article class="frame" style="width: 360px">
+        <div class="wf">
+          <div class="vignette"><div class="float">
+            <div class="pins">
+              <span class="pin"><span class="t-caption">E</span></span>
+              <span class="pin"><span class="t-caption">H</span></span>
+              <span class="pin"><span class="t-caption">S</span></span>
             </div>
+            <p class="t-small muted" style="margin-top: var(--sp-3);">Elevated · High · Severe</p>
+          </div></div>
+          <div class="idea-caption">
+            <span class="idea-num">#4</span>
+            <p class="idea-title">Letter in the pin</p>
+            <p class="idea-desc">E / H / S inside the pin. No new symbol to learn, but letters have no built-in order (is H more than E?), they only work in English, and they're hard to read at pin size.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="frame" style="width: 360px">
+        <div class="wf">
+          <div class="vignette"><div class="float">
+            <div class="scale-row"><span class="shape circle" aria-hidden="true"></span><span class="t-small lbl">Elevated</span></div>
+            <div class="scale-row"><span class="shape square" aria-hidden="true"></span><span class="t-small lbl">High</span></div>
+            <div class="scale-row"><span class="shape diamond" aria-hidden="true"></span><span class="t-small lbl">Severe</span></div>
+          </div></div>
+          <div class="idea-caption">
+            <span class="idea-num">#5</span>
+            <p class="idea-title">Shape per level</p>
+            <p class="idea-desc">Circle, square, diamond, as on some hazard signage. Distinct at any size, but shapes carry no order, so every reader has to learn the legend. Also collides with the round pin itself.</p>
           </div>
         </div>
       </article>
 
     </div>
-    <aside class="note-rail">
-      <div class="note-group" data-for="scr-d-featured">
-        <p class="note-frame">Featured stop</p>
-        <p><span class="note-num">1</span> On a place page, the layout's "Places near here" list collapses to this back link, and the panel ends with "Nearby places" (5). Showing both lists side by side duplicated content and pushed the cards down. <strong>Spec change: §7.4/§7.5 should say this.</strong> The link returns focus to the list item that opened the place.</p>
-        <p><span class="note-num">2</span> Heading: risk glyph + name on the left, level meter + word on the right (decided: meter #1, three ascending slots). Glyph circles are placeholders for icon art. The So What? sentence is still the largest text, and screen-reader users hear the level first. The at-a-glance row above appears because this place has 2 flagged cards.</p>
-        <p><span class="note-num">3</span> Trend block: dashed surface, "Projected" badge before the sentence in the DOM. It reads as a different kind of statement at a glance, without colour.</p>
-        <p><span class="note-num">4</span> Low risks collapse to one disclosure button (aria-expanded). The panel stays about the risks that are flagged.</p>
-        <p><span class="note-num">5</span> The map is one tab stop with its keyboard help visible; pins are hidden from assistive tech. The legend is text, and states that unflagged places are hidden (closes review gap 3).</p>
-      </div>
-      <div class="note-group" data-for="scr-d-coastal">
-        <p class="note-frame">Coastal park</p>
-        <p><span class="note-num">1</span> <strong>Finding:</strong> spec rev. 8 collapses all low cards, which would hide the heat trend line inside the disclosure, and with it the climate story for every unflagged place. Proposed rule: <strong>a low card with a trend stays expanded</strong>, with no tip. The disclosure covers only low cards without a trend.</p>
-        <p><span class="note-num">2</span> Sea card last: the wave glyph (the sea risk glyph, also on projected pins) beside the name, and "Projected" in the level slot instead of a meter. It follows the expanded heat card, so the order is today's content first, projection last.</p>
-      </div>
-      <div class="note-group" data-for="scr-d-all">
-        <p class="note-frame">School, all three flagged</p>
-        <p><span class="note-num">1</span> <strong>Decided:</strong> the at-a-glance row appears when a place has 2 or more flagged cards (elevated or above today, or a sea card). Chips carry the same risk glyph as their card headings (idea #7), so the repetition links chip to card. It is its own small labelled nav.</p>
-        <p><span class="note-num">2</span> Three full cards, three different tips. They don't repeat, so no tip-merging is needed. The card order holds: sorted by level (Severe → High → Elevated).</p>
-      </div>
-    </aside>
   </section>
 
-  <!-- ═══════════════════ MOBILE 320 ═══════════════════ -->
-  <section class="board-section" data-section="Mobile — 320px reflow">
-    <h2 class="section-label">Mobile — 320px reflow</h2>
+  <section class="board-section" data-section="Risk glyph — tying the at-a-glance row to card headings">
+    <h2 class="section-label">Risk glyph — tying the at-a-glance row to card headings</h2>
     <div class="frame-grid">
 
-      <!-- M1 list view -->
-      <article class="frame" id="scr-m-list" style="width: 320px">
-        <h3 class="frame-plate"><span>Start — places list (default at narrow widths)</span><span class="frame-pos">4/6</span></h3>
+      <article class="frame" style="width: 360px">
         <div class="wf">
-          <header class="appbar">
-            <p class="t-heading grow">So What?</p>
-            <a class="btn btn-ghost btn-sm" href="#">About</a>
-          </header>
-          <div class="m-top">
-            <div class="zip">
-              <label class="field"><span class="field-label">Zip code</span><input class="input" inputmode="numeric" autocomplete="postal-code" value="90012"></label>
-              <button class="btn btn-secondary">Search</button>
+          <div class="vignette"><div class="float">
+            <div class="risk-head">
+              <h2 class="risk-name t-body-strong"><span class="icon icon-md" aria-hidden="true"></span>Heat</h2>
+              <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span class="on"></span><span></span></span><span class="badge badge-muted">High</span></span>
             </div>
-            <div class="row" style="margin-top: var(--sp-2);">
-              <button class="btn btn-ghost btn-sm">Use my location</button>
-              <button class="btn btn-ghost btn-sm">Show me an example</button>
-            </div>
-            <fieldset class="anchor" style="margin-top: var(--sp-3);">
-              <legend class="t-small muted">Show risks</legend>
-              <div class="m-filters">
-                <label class="choice t-small"><input type="checkbox" checked> Air</label>
-                <label class="choice t-small"><input type="checkbox" checked> Heat</label>
-                <label class="choice t-small"><input type="checkbox" checked> Wildfire</label>
-                <label class="choice t-small"><input type="checkbox" checked> Sea (projected)</label>
-              </div>
-              <div class="note-marker" style="top: 0; right: 0;">2</div>
-            </fieldset>
-            <div class="toggle anchor" role="group" aria-label="View">
-              <button class="chip" aria-pressed="true">List</button>
-              <button class="chip" aria-pressed="false">Map</button>
-              <div class="note-marker" style="top: calc(var(--sp-3) * -1); right: calc(var(--sp-2) * -1);">1</div>
-            </div>
+            <p class="sowhat">This neighborhood traps more heat from pavement and buildings than 94% of LA County neighborhoods.</p>
+          </div></div>
+          <div class="idea-caption">
+            <span class="idea-num">#6</span>
+            <p class="idea-title">Card heading: risk glyph left, level right</p>
+            <p class="idea-desc">What the risk is (glyph + word) on the left, how bad (meter + word) on the right. Two glyph systems, never in the same slot. The circle is a placeholder: the icon art is visual design. Brief: air = particles/wind, heat = thermometer, wildfire = flame, sea level rise = the wave already used on projected pins.</p>
           </div>
-          <main class="screen-body">
-            <p class="status t-small muted anchor">20 places near 90012 · nearest first<span class="note-marker" style="top: calc(var(--sp-1) * -1); right: 0;">3</span></p>
-            <h2 class="t-heading">Places near here</h2>
-            <ol class="list" style="margin-top: var(--sp-2);">
-              <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Ave / 3rd St</span><span class="t-small muted">Bus stop · Heat: High, Air: Elevated</span></span><span class="t-caption muted">0.3 miles</span></a></li>
-              <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Third Street Playground</span><span class="t-small muted">Playground · Heat: High</span></span><span class="t-caption muted">0.4 miles</span></a></li>
-              <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Elementary School</span><span class="t-small muted">School · Air: Elevated, Heat: Elevated</span></span><span class="t-caption muted">0.6 miles</span></a></li>
-              <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Oak Park</span><span class="t-small muted">Park · Heat: Elevated</span></span><span class="t-caption muted">0.8 miles</span></a></li>
-              <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Ave / 9th St</span><span class="t-small muted">Bus stop · Air: Elevated</span></span><span class="t-caption muted">0.9 miles</span></a></li>
-            </ol>
-          </main>
         </div>
       </article>
 
-      <!-- M2 featured stop -->
-      <article class="frame" id="scr-m-featured" style="width: 320px">
-        <h3 class="frame-plate"><span>Featured stop — panel</span><span class="frame-pos">5/6</span></h3>
+      <article class="frame" style="width: 360px">
         <div class="wf">
-          <header class="appbar">
-            <a class="btn-icon" href="#" aria-label="Back to places near here"><span class="glyph gl-arrow-left"></span></a>
-            <p class="t-body-strong grow">Places near here</p>
-            <button class="btn btn-ghost btn-sm">Show on map</button>
-          </header>
-          <main class="screen-body">
-            <h1 class="t-title">Harbor Ave / 3rd St</h1>
-            <div class="row t-small muted" style="margin-top: var(--sp-1);"><span>Bus stop · 0.3 miles</span></div>
+          <div class="vignette"><div class="float">
             <nav class="glance" aria-label="Risks at this place">
-              <a class="chip" href="#m2-heat"><span class="icon icon-sm" aria-hidden="true"></span>Heat — High</a>
-              <a class="chip" href="#m2-air"><span class="icon icon-sm" aria-hidden="true"></span>Air — Elevated</a>
+              <a class="chip" href="#"><span class="icon icon-sm" aria-hidden="true"></span>Air — Severe</a>
+              <a class="chip" href="#"><span class="icon icon-sm" aria-hidden="true"></span>Heat — High</a>
+              <a class="chip" href="#"><span class="icon icon-sm" aria-hidden="true"></span>Wildfire — Elevated</a>
             </nav>
-            <section class="risk anchor" aria-labelledby="m2-heat">
-              <div class="note-marker" style="top: calc(var(--sp-3) * -1); right: calc(var(--sp-2) * -1);">1</div>
-              <div class="risk-head">
-                <h2 id="m2-heat" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Heat</h2>
-                <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span class="on"></span><span></span></span><span class="badge badge-muted">High</span></span>
-              </div>
-              <p class="sowhat">This neighborhood traps more heat from pavement and buildings than 94% of LA County neighborhoods. A long summer wait in direct sun can cause heat illness, especially for older riders.</p>
-              <div class="trend">
-                <span class="badge badge-muted">Projected</span>
-                <p class="t-body">And it's getting hotter: this area is projected to go from about 6 to 20 extreme-heat days a year by mid-century.</p>
-              </div>
-              <p class="source t-caption muted">Source: CalEPA · Cal-Adapt</p>
-              <button class="btn btn-ghost btn-sm about" aria-expanded="false">About this data <span class="glyph glyph-sm gl-chevron"></span></button>
-              <p class="tip t-small">On hot days, cooling centers are open across LA County. <a class="link" href="#">Find one near you (LA County)</a></p>
-            </section>
-            <section class="risk" aria-labelledby="m2-air">
-              <div class="risk-head">
-                <h2 id="m2-air" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Air</h2>
-                <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span></span><span></span></span><span class="badge badge-muted">Elevated</span></span>
-              </div>
-              <p class="sowhat">Fine-particle air pollution here is higher than in 81% of California neighborhoods. Riders breathe it every time they wait, and it adds up over years of commuting.</p>
-              <p class="source t-caption muted">Source: CalEnviroScreen (OEHHA)</p>
-              <button class="btn btn-ghost btn-sm about" aria-expanded="false">About this data <span class="glyph glyph-sm gl-chevron"></span></button>
-              <p class="tip t-small">Check today's air quality before long waits or outdoor exercise. <a class="link" href="#">AirNow</a></p>
-            </section>
-            <button class="btn btn-secondary btn-block collapsed" aria-expanded="false">Not flagged today for wildfire <span class="glyph glyph-sm gl-chevron"></span></button>
-            <div class="row anchor" style="margin-top: var(--sp-4);">
-              <button class="btn btn-secondary btn-sm">Copy link</button>
-              <div class="note-marker" style="top: calc(var(--sp-3) * -1); left: calc(var(--sp-23) + var(--sp-4));">2</div>
-            </div>
-            <h2 class="t-heading section-h">Nearby places</h2>
-            <ol class="list">
-              <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Ave / 5th St</span><span class="t-small muted">Bus stop · Heat: High</span></span><span class="t-caption muted">0.1 miles</span></a></li>
-              <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Third Street Playground</span><span class="t-small muted">Playground · Heat: High</span></span><span class="t-caption muted">0.2 miles</span></a></li>
-            </ol>
-          </main>
+          </div></div>
+          <div class="idea-caption">
+            <span class="idea-num">#7</span>
+            <p class="idea-title">At-a-glance chips: risk glyph + words</p>
+            <p class="idea-desc">Each chip carries the same risk glyph as its card heading, so "this chip goes to that card" reads without effort. The level stays as a word. Lighter, and wraps well at 320px. Recommended.</p>
+          </div>
         </div>
       </article>
 
-      <!-- M3 all three -->
-      <article class="frame" id="scr-m-all" style="width: 320px">
-        <h3 class="frame-plate"><span>School, all three flagged — panel</span><span class="frame-pos">6/6</span></h3>
+      <article class="frame" style="width: 360px">
         <div class="wf">
-          <header class="appbar">
-            <a class="btn-icon" href="#" aria-label="Back to places near here"><span class="glyph gl-arrow-left"></span></a>
-            <p class="t-body-strong grow">Places near here</p>
-            <button class="btn btn-ghost btn-sm">Show on map</button>
-          </header>
-          <main class="screen-body">
-            <h1 class="t-title">Eastside Elementary School</h1>
-            <div class="row t-small muted" style="margin-top: var(--sp-1);"><span>School · 2.4 miles</span></div>
-            <nav class="glance anchor" aria-label="Risks at this place">
-              <a class="chip" href="#m3-air"><span class="icon icon-sm" aria-hidden="true"></span>Air — Severe</a>
-              <a class="chip" href="#m3-heat"><span class="icon icon-sm" aria-hidden="true"></span>Heat — High</a>
-              <a class="chip" href="#m3-fire"><span class="icon icon-sm" aria-hidden="true"></span>Wildfire — Elevated</a>
-              <div class="note-marker" style="top: calc(var(--sp-3) * -1); right: calc(var(--sp-2) * -1);">1</div>
+          <div class="vignette"><div class="float">
+            <nav class="glance" aria-label="Risks at this place">
+              <a class="chip" href="#"><span class="icon icon-sm" aria-hidden="true"></span>Air <span class="meter" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span></span></a>
+              <a class="chip" href="#"><span class="icon icon-sm" aria-hidden="true"></span>Heat <span class="meter" aria-hidden="true"><span class="on"></span><span class="on"></span><span></span></span></a>
+              <a class="chip" href="#"><span class="icon icon-sm" aria-hidden="true"></span>Wildfire <span class="meter" aria-hidden="true"><span class="on"></span><span></span><span></span></span></a>
             </nav>
-            <section class="risk" aria-labelledby="m3-air">
-              <div class="risk-head">
-                <h2 id="m3-air" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Air</h2>
-                <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span></span><span class="badge badge-muted">Severe</span></span>
-              </div>
-              <p class="sowhat">Fine-particle air pollution here is higher than in 98% of California neighborhoods. Students breathe it all school day, and most deeply during recess and sports.</p>
-              <p class="source t-caption muted">Source: CalEnviroScreen (OEHHA)</p>
-              <button class="btn btn-ghost btn-sm about" aria-expanded="false">About this data <span class="glyph glyph-sm gl-chevron"></span></button>
-              <p class="tip t-small">Check today's air quality before long waits or outdoor exercise. <a class="link" href="#">AirNow</a></p>
-            </section>
-            <section class="risk anchor" aria-labelledby="m3-heat">
-              <div class="note-marker" style="top: calc(var(--sp-3) * -1); right: calc(var(--sp-2) * -1);">2</div>
-              <div class="risk-head">
-                <h2 id="m3-heat" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Heat</h2>
-                <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span class="on"></span><span></span></span><span class="badge badge-muted">High</span></span>
-              </div>
-              <p class="sowhat">This neighborhood traps more heat from pavement and buildings than 92% of LA County neighborhoods. Heat makes it harder for students to learn and makes outdoor recess and sports riskier.</p>
-              <div class="trend">
-                <span class="badge badge-muted">Projected</span>
-                <p class="t-body">And it's getting hotter: this area is projected to go from about 9 to 27 extreme-heat days a year by mid-century.</p>
-              </div>
-              <p class="source t-caption muted">Source: CalEPA · Cal-Adapt</p>
-              <button class="btn btn-ghost btn-sm about" aria-expanded="false">About this data <span class="glyph glyph-sm gl-chevron"></span></button>
-              <p class="tip t-small">On hot days, cooling centers are open across LA County. <a class="link" href="#">Find one near you (LA County)</a></p>
-            </section>
-            <section class="risk" aria-labelledby="m3-fire">
-              <div class="risk-head">
-                <h2 id="m3-fire" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Wildfire</h2>
-                <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span></span><span></span></span><span class="badge badge-muted">Elevated</span></span>
-              </div>
-              <p class="sowhat">This school is in CAL FIRE's Moderate fire hazard zone. Fire could spread here, so families should know the school's evacuation and pickup plan.</p>
-              <p class="source t-caption muted">Source: CAL FIRE</p>
-              <button class="btn btn-ghost btn-sm about" aria-expanded="false">About this data <span class="glyph glyph-sm gl-chevron"></span></button>
-              <p class="tip t-small">Sign up for emergency alerts and learn your evacuation zone. <a class="link" href="#">Ready LA County</a></p>
-            </section>
-          </main>
+          </div></div>
+          <div class="idea-caption">
+            <span class="idea-num">#8</span>
+            <p class="idea-title">At-a-glance chips: risk glyph + meter</p>
+            <p class="idea-desc">Glyph for the risk, meter for the level, no level word. The most compact, and the row scans like a small chart. But two glyphs in one chip is dense, and it drops the word, so it relies on the reader having learned the meter.</p>
+          </div>
         </div>
       </article>
 
     </div>
-    <aside class="note-rail">
-      <div class="note-group" data-for="scr-m-list">
-        <p class="note-frame">Start — places list</p>
-        <p><span class="note-num">1</span> List/Map toggle: two buttons with aria-pressed, state kept in the URL. The list is the default below tablet width, per spec §7.5 (reflow at 320px).</p>
-        <p><span class="note-num">2</span> <strong>Decided:</strong> filters stay visible on phones. The four checkboxes cost about 80px above the list, which is acceptable for one-tap filtering.</p>
-        <p><span class="note-num">3</span> This status line is the visible twin of the live-region announcement, so sighted users get the same confirmation.</p>
-      </div>
-      <div class="note-group" data-for="scr-m-featured">
-        <p class="note-frame">Featured stop — panel</p>
-        <p><span class="note-num">1</span> <strong>Decided:</strong> on phones, the detail line, full source names and projection method sit behind "About this data" (aria-expanded), with a short source line always visible. The heat card is now about one screen: sentence (about 7 lines at 320px), trend, short source, disclosure, tip. Wider screens show everything inline, in the same DOM order.</p>
-        <p><span class="note-num">2</span> Copy link moves below the cards on mobile, so the first screen is the place and its top risk rather than actions.</p>
-      </div>
-      <div class="note-group" data-for="scr-m-all">
-        <p class="note-frame">School, all three — panel</p>
-        <p><span class="note-num">1</span> On mobile the "at a glance" row earns its place: three full cards are about 4 screens long, and the row shows all three levels in the first screen. It wraps to two lines at 320px. Recommendation: include it when a place has 2 or more flagged cards.</p>
-        <p><span class="note-num">2</span> The heat card was the longest (about 1.3 screens). With "About this data" collapsed it is about one screen; the scenario and years are one tap away. "Projected", "about" and "by mid-century" stay in the sentence, so honesty doesn't depend on the collapsed part.</p>
-      </div>
-    </aside>
   </section>
 <script>
 /* ═══════════════════════════════════════════════════════════════════
