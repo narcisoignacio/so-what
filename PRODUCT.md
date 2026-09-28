@@ -14,8 +14,14 @@ Decided in the spec (§3, §7, §8): Next.js App Router on Vercel Hobby, Turso C
 
 ## Users
 
-- **Primary: CS50 graders and demo-video viewers.** Most are not in Los Angeles and have no local knowledge. They open the site (or watch the video) once and must understand a real LA place's risks within about 30 seconds. When audiences pull in different directions, this one wins.
-- **Secondary: LA County residents** who find the public site and look up places they use: their bus stop, their kid's school or playground, their park.
+- **CS50 graders and demo-video viewers.** Most are not in Los Angeles and have no local knowledge. They open the site (or watch the video) once and must understand a real LA place's risks within about 30 seconds.
+- **LA County residents** who find the public site and look up places they use: their bus stop, their kid's school or playground, their park.
+
+**Priority changes at the submission deadline (2027-06-30 4:59 PM PDT):**
+- **Until then:** graders come first and residents second. When the two pull in different directions, the graders win.
+- **After it passes:** residents become the primary users. The 30-second test stays in place as the bar for anyone new to the site, but it no longer overrides what residents need.
+
+Design choices that favor graders (a featured example, video-friendly copy) should be ones that still work for residents or are easy to change after the deadline.
 
 ## Product Purpose
 
