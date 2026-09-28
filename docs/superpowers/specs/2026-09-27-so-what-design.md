@@ -1,6 +1,6 @@
 # So What? — Design Spec
 
-**Date:** 2026-09-27 (rev. 4: Drizzle on @tursodatabase/serverless)
+**Date:** 2026-09-27 (rev. 5: featured place chosen in M1, consequence-first risk cards, So What? length cap — from [grader's first 30 seconds](../../journeys/2026-09-28-grader-first-30-seconds.md))
 **Status:** Draft, awaiting review
 **Context:** CS50x final project (due before 2027-06-30 4:59 PM PDT), also deployed publicly on a custom domain, on free tiers.
 
@@ -167,7 +167,7 @@ CREATE TABLE zips (
 );
 
 CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
--- keys: build_date, cell_size_deg, schema_version, row_count_places, source versions
+-- keys: build_date, cell_size_deg, schema_version, row_count_places, featured_slug, source versions
 ```
 
 **Level ranks:** `low = 0`, `elevated = 1`, `high = 2`, `severe = 3`.
@@ -190,7 +190,14 @@ Anything below `elevated` is `low`. Thresholds may be tuned during M1 after insp
 
 - **Templates** (`templates.py`) keyed by `(type, kind, level)`, interpolating place-specific values. Example — `(heat, bus_stop, high)`: *"Riders here wait in one of the hottest 10% of neighborhoods in LA County. Without a shelter or shade, midday summer waits can be a health risk, especially for older riders."*
 - Every `(type, kind, level ≥ elevated)` combination must have a template; `validate.py` enforces this. `low` rows get a short neutral sentence.
-- **Showcase overrides** (`showcase.yaml`): ~15–20 places with hand-written `detail` and `so_what` plus a citation URL per entry. At least one showcase place is the **featured starting spot**, chosen to exhibit all three risks.
+- **Length cap:** every rendered `so_what` is **≤ 30 words**, so it reads at a glance on the card and fits one caption line in the demo video, even at 2× speed. `validate.py` enforces this on rendered text (templates plus interpolated values, and showcase overrides).
+- **Wording scope:** `so_what` describes the *neighborhood* ("one of the hottest 10% of neighborhoods"), never the exact spot, because the data is tract- or zone-level (§15).
+- **Showcase overrides** (`showcase.yaml`): ~15–20 places with hand-written `detail` and `so_what` plus a citation URL per entry.
+- **Featured place:** one showcase entry is the **featured starting spot**. It is used by "Show me an example", by the geolocation fallback, and as the place shown in the demo video's opening. It is **chosen at the end of M1**, once real distributions exist, and its showcase entry is written and validated in M2. It is marked `featured: true` in `showcase.yaml` (exactly one entry), and `build.py` writes its slug to `meta.featured_slug`, where the app reads it. Criteria:
+  - kind is `bus_stop` (legible to viewers with no LA knowledge);
+  - `high` or above on at least two risks, one of them heat; all three `elevated`+ preferred;
+  - a readable stop name;
+  - ideally a stop the author knows or uses, rather than the most dramatic one available.
 
 ### 5.6 Pipeline steps
 
@@ -326,6 +333,13 @@ interface PlaceDetail {
 ### 7.4 Behavior
 
 - **Selecting a place:** clicking a pin navigates to `/places/[slug]`; the layout's map persists and the panel swaps. Direct loads of a share URL server-render the panel; the map centers on the place on hydration.
+- **Risk card order (consequence first):** each `RiskCard` reads top-down as
+  1. the **So What?** sentence (`soWhat`), the most prominent text on the card;
+  2. the specific risk (`detail`);
+  3. the level, as a text label ("High"), with colour as reinforcement only, never the sole signal;
+  4. the source line (name, linked).
+
+  The consequence leads because it is the product's thesis: the metric supports the sentence, not the other way round. This order holds on the live site, in OG images, and in the demo video.
 - **Filters:** `?types=air,heat` in the URL; applied to pins, clusters, nearest search; preserved in share links. Default: all three.
 - **Entry flow:**
   1. Start panel offers **Use my location**, **zip search**, and **Show me an example**.
@@ -390,6 +404,8 @@ Fails the build (non-zero exit; nothing published) if any of:
 - duplicate slugs or source keys;
 - a `showcase.yaml` entry references a nonexistent `source_key` or lacks a citation;
 - a required template `(type, kind, level ≥ elevated)` is missing;
+- any rendered `so_what` exceeds 30 words (§5.5);
+- no showcase entry is marked as the featured place, or it fails the featured-place criteria (§5.5);
 - row counts fall outside expected ranges (configured in `validate.py`);
 - any slug in `data/published_slugs.txt` is missing (§5.2).
 
@@ -423,8 +439,8 @@ Fails the build (non-zero exit; nothing published) if any of:
 | Milestone | Deliverable |
 |---|---|
 | **M0 — Deployment spike** | §8.3. |
-| **M1 — Data spike** | Every source in §5.1 confirmed (license, format, projection, vintage); heat source chosen; thresholds sanity-checked against real distributions. |
-| **M2 — Pipeline** | Full ETL with tests; valid `data/sowhat-YYYYMMDD.db`; first publish to Turso. |
+| **M1 — Data spike** | Every source in §5.1 confirmed (license, format, projection, vintage); heat source chosen; thresholds sanity-checked against real distributions; **featured place chosen** (§5.5). |
+| **M2 — Pipeline** | Full ETL with tests; featured place's showcase entry written and cited; valid `data/sowhat-YYYYMMDD.db`; first publish to Turso. |
 | **M3 — Map + API** | Viewport pins, server-side clusters, filters, nearest search. |
 | **M4 — Place pages** | Server-rendered panels, OG metadata and images, not-found. |
 | **M5 — Entry flow** | Geolocation, zip search, featured start, empty-viewport behavior. |
