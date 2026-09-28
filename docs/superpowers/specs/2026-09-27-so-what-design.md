@@ -340,7 +340,7 @@ web/
       page.tsx               server-rendered detail panel; generateMetadata for OG/Twitter tags
       opengraph-image.tsx    generated share image (place name, kind, top risk)
       not-found.tsx
-    about/page.tsx           method, thresholds, sources, attribution, limitations
+    about/page.tsx           method, thresholds, sources, tip links, attribution, limitations
     api/
       places/route.ts        GET ?bbox=west,south,east,north&zoom=&types=air,fire,heat,sea
                              → { mode: 'pins', pins } | { mode: 'clusters', clusters }
@@ -354,7 +354,8 @@ web/
                            read-only TURSO_AUTH_TOKEN); the only file that knows the driver
       queries.ts             every query the app runs; each takes a Drizzle `db` argument; returns DTOs from types.ts
     geo.ts                   CELL_SIZE_DEG, S_MIN, cell math, haversine, bbox parsing, zoom→factor table
-    types.ts                 PinSummary, Cluster, PlaceDetail, Risk, Source (API/UI shapes)
+    types.ts                 PinSummary, Cluster, PlaceDetail, Risk, Source, Tip (API/UI shapes)
+    tips.ts                  one "what you can do" tip per RiskType (§7.4); fixed data, not in the database
   components/
     MapView.tsx              Leaflet (client-only), pins + clusters, syncs with URL
     PlacePanel.tsx, RiskCard.tsx, ZipSearch.tsx, LocateButton.tsx, NearestButton.tsx, RiskFilters.tsx
@@ -403,9 +404,16 @@ interface Projection {                    // from meta
   2. the **trend** line, when present, visually distinct from today's text (e.g. its own row with a "Projected" label) so present and future are never confused;
   3. the specific risk (`detail`);
   4. the level, as a text label ("High"), with colour as reinforcement only, never the sole signal;
-  5. the source line (name, linked), plus, when a trend is shown, the projection's source, scenario and periods (e.g. "Projection: Cal-Adapt LOCA2, {scenario}, {baseline} vs. {future}").
+  5. the source line (name, linked), plus, when a trend is shown, the projection's source, scenario and periods (e.g. "Projection: Cal-Adapt LOCA2, {scenario}, {baseline} vs. {future}");
+  6. the **tip** ("what you can do"), when shown: one action and a link.
 
-  The consequence leads because it is the product's thesis: the metric supports the sentence, not the other way round. The trend follows immediately because "and it's getting worse" is what makes it a climate story. This order holds on the live site, in OG images, and in the demo video. The level label describes today only; the card must not imply the projection changed it.
+  The consequence leads because it is the product's thesis: the metric supports the sentence, not the other way round. The trend follows immediately because "and it's getting worse" is what makes it a climate story. This order holds on the live site, in OG images (which omit the tip), and in the demo video. The level label describes today only; the card must not imply the projection changed it.
+- **Tips ("what you can do"):** each card that is `elevated` or above, and every sea-level-rise card, ends with one tip, so a stated risk always comes with a next step.
+  - Defined in `web/lib/tips.ts` as fixed data keyed by `RiskType`: `{ text, linkText, url, org }`. One tip per type; tips don't vary by place, so they live in the app, not the database, and changing one needs no data rebuild.
+  - Wording follows the [voice doc](../../content/2026-09-28-so-what-voice-and-templates.md) §7: a verb and a link, never repeating the `so_what`; about what to do now, even under a trend line.
+  - `linkText` names the organization ("AirNow", "Ready LA County"), so a screen reader announces where the link goes. Links open in the same tab.
+  - Not shown on `low` cards or on the collapsed "Not flagged today" line: a next step for a risk that isn't flagged would imply a risk the data doesn't show.
+  - The About page lists every tip's organization and URL alongside the data sources.
 - **Panel order:** today's cards (air, heat, fire) first, sorted by level; the sea-level-rise card last. Its level slot shows a **"Projected"** label instead of a level, and it uses the same visual treatment as trend lines. A place with no elevated findings today shows its `low` cards collapsed into one line ("Not flagged today for air, heat or wildfire") above the sea-level-rise card, so the projection isn't mistaken for today's finding.
 - **Pins:** a place visible only through `sea_flag` uses a distinct "projected" pin style (e.g. outlined, not filled) and the legend explains it. A place with both today's findings and `sea_flag` uses its level colour plus a small projected-flooding marker. Neither relies on colour alone.
 - **Filters:** `?types=air,heat,fire,sea` in the URL; applied to pins, clusters, nearest search; preserved in share links. Default: all four.
@@ -504,6 +512,7 @@ Fails the build (non-zero exit; nothing published) if any of:
   - clusters: coarse grouping is correct across negative columns (floor division).
   - nearest: the **trap case** — the first non-empty box contains a point, but the true nearest lies just outside that box — returns the true nearest; the empty-until-cap case returns `null`.
 - Schema drift guard (§7.2).
+- `tips.ts`: every `RiskType` has exactly one tip; every URL is `https`; `RiskCard` shows the tip for `elevated`+ and sea cards and hides it for `low`.
 
 **End-to-end (Playwright, small):**
 - A share URL renders the panel and correct OG tags.
@@ -520,7 +529,7 @@ Fails the build (non-zero exit; nothing published) if any of:
 | **M3 — Map + API** | Viewport pins, server-side clusters, filters, nearest search. |
 | **M4 — Place pages** | Server-rendered panels, OG metadata and images, not-found. |
 | **M5 — Entry flow** | Geolocation, zip search, featured start, empty-viewport behavior. |
-| **M6 — Content** | Showcase entries written and cited; About page. |
+| **M6 — Content** | Showcase entries written and cited; tip URLs checked by hand; About page. |
 | **M7 — Ship** | Production deploy, README (≥ 750 words), demo video, `submit50`. |
 
 **Outcome tiers (CS50's "good / better / best"):**

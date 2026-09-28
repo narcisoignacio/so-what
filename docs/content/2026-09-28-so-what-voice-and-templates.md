@@ -201,9 +201,9 @@ Shared first sentence: *By mid-century, with about {rise} of sea level rise, {co
 
 ---
 
-## 7. "What you can do": proposed tip per risk type (gap 2)
+## 7. "What you can do": tip per risk type (gap 2)
 
-**This needs a spec change.** Nothing in the current schema holds it. Proposal: fixed strings in `web/lib/tips.ts`, keyed by risk type and shown under each card that is `elevated` or above, or that is a sea-level-rise card. No database change, because the tips don't vary by place. The About page cites where each one comes from.
+Specified in spec §7.4: fixed data in `web/lib/tips.ts`, keyed by risk type, shown at the end of each card that is `elevated` or above and of every sea-level-rise card. No database change, because the tips don't vary by place. The About page lists where each one points.
 
 | Type | Tip | Link |
 |---|---|---|
@@ -272,7 +272,6 @@ Shared first sentence: *By mid-century, with about {rise} of sea level rise, {co
 ## 10. Pending questions
 
 - **M1 decides:** the extreme-heat-day definition; whether fire gets a trend line and what its metric is; the sea-level-rise amount, CoSMoS layer, and whether `{condition}` is tides or a storm.
-- **Tip field:** accept the proposal in §7, and I'll write it into spec §5.5 and §7.4.
 - **Consequence claims need citations too.** The spec cites the *data* on each card, but not claims like "children are more sensitive to heat" or "heat makes it harder for students to learn." Proposal: the About page lists one public-health reference per claim (for example EPA for fine particles, CDC for heat illness, and published research on heat and learning), stored in `sources`. Each claim should be checked before M6. If one can't be supported, cut it. The same applies to the sea-level-rise consequences ("service may be moved", "may close").
 - **Showcase entries** (`showcase.yaml`) are hand-written by you and follow these same principles and word caps. They are where the writing becomes most specific, so they should be in your own words.
 - **Academic honesty:** these templates were drafted with AI assistance. Cite that in a comment in `pipeline/templates.py` and in the README (spec §13).
