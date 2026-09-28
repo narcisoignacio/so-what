@@ -243,7 +243,9 @@ Specified in spec §7.4: fixed data in `web/lib/tips.ts`, keyed by risk type, sh
 | Level slot on a today card | Low · Elevated · High · Severe |
 | Label on a trend line, and in the level slot of a sea card | Projected |
 | Collapsed line for a place with nothing flagged today (spec §7.4) | Not flagged today for air, heat or wildfire. |
-| Map legend, outlined pin | Projected coastal flooding by mid-century |
+| Map legend, dashed pin with wave glyph | Projected coastal flooding by mid-century |
+| Card heading (spec §7.4) | {Risk} — {Level}, e.g. "Heat — High"; "Sea level rise — Projected" |
+| Distances | "1.4 miles", never "1.4 mi" |
 
 ---
 

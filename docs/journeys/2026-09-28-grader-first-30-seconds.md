@@ -62,11 +62,11 @@ The turn used to be seeing the place. Now the place is the **recognition** beat,
 **Voice-over:** "At this bus stop, the neighborhood traps more heat than 94% of LA County neighborhoods. A long summer wait can cause heat illness."
 
 **Why a bus stop:** everyone knows what waiting at a bus stop is like, in any city. It needs no LA knowledge, and it implies exposure (outdoors, waiting, no choice) without saying so.
-**Why the voice-over is shorter than the card:** the full card sentence is 30 words, and the beat has room for about 23 at a pace people can follow. The voice-over keeps the meaning (and the word "neighborhoods," which carries the honesty about scale) and drops only detail the viewer can read on the card. The burned-in caption shows the **spoken** words, so sound-off viewers get the same message.
+**Why the voice-over is shorter than the card:** the full card sentence is 30 words, and the beat has room for about 23 at a pace people can follow. The voice-over keeps the meaning (and the word "neighborhoods," which carries the honesty about scale) and drops only detail the viewer can read on the card. Sound-off viewers read the full sentence on the card itself. The uploaded caption file shows the **spoken** words for viewers who turn captions on (§4.3).
 
 ### Beat 4 — The turn: it's getting worse (0:17–0:24)
 
-**On screen:** The heat card's trend line comes into focus. The "Projected" label is clearly visible, and the trend sentence is captioned.
+**On screen:** The heat card's trend line comes into focus. The "Projected" label and the trend sentence are clearly readable on the card.
 **Voice-over:** "And it's projected to get hotter: from about 6 extreme-heat days a year to 20 by mid-century." *(numbers from the real build)*
 
 **Why it exists:** It turns a local hazard into a climate story, which is the app's intent. It comes after today's condition, not before, because the viewer has to believe the present before a projection means anything.
@@ -74,7 +74,7 @@ The turn used to be seeing the place. Now the place is the **recognition** beat,
 
 ### Beat 5 — Scale and hand-off (0:24–0:30)
 
-**On screen:** Zoom out from the stop to the county, where the pins merge into server-side clusters (spec §6.3). Show the real place count from `meta.row_count_places` on screen. As the view passes the coast, outlined "projected flooding" pins are visible for a moment. That's a visual preview of sea level rise, which the voice-over doesn't mention here.
+**On screen:** Zoom out from the stop to the county, where the pins merge into server-side clusters (spec §6.3). Show the real place count from `meta.row_count_places` on screen. As the view passes the coast, the dashed, wave-marked "projected flooding" pins are visible for a moment. That's a visual preview of sea level rise, which the voice-over doesn't mention here.
 **On-screen text:** the place count and the four kinds, e.g. "[N] bus stops, parks, playgrounds and schools."
 **Voice-over:** "Across LA County, thousands of places. Here's how it works."
 
@@ -96,17 +96,22 @@ The video can only film what exists, so this journey puts requirements back on t
 
 ### 4.2 Card order (spec §7.4)
 
-So What? sentence → trend line (labelled "Projected") → detail → level label → source line. Beats 3 and 4 film that order top to bottom, so the camera never has to jump around the card.
+Heading with the level badge ("Heat — High") → So What? sentence → trend line (labelled "Projected") → detail → source line → tip. The level sits in the card heading since spec rev. 8, for screen-reader navigation. Beats 3 and 4 film that order top to bottom, so the camera never has to jump around the card.
 
 ### 4.3 Legible at 1080p and 2×
 
 - The So What? sentence (≤ 30 words) and the trend line (≤ 25 words) must each read in a couple of seconds at 2×.
 - Record the browser window at a size where panel text is still readable when the video is viewed at 720p.
 - The "Projected" label must be legible on its own in the frame. It's what keeps Beat 4 honest for viewers who have the sound off.
+- **Captions and text alternative** (from the [accessibility review](../accessibility/2026-09-28-so-what-accessibility-review.md), P1-6):
+  - Upload an accurate caption file (`.srt`) to YouTube; don't rely on auto-captions.
+  - **Don't burn in captions.** The card already shows the full sentence for sound-off viewers, and burned-in text plus YouTube captions puts two sets of text on screen.
+  - Put a short **descriptive transcript** in the YouTube description and the README, covering what's only on screen: Beat 2's tract ID and percentile, and Beat 5's place count and kinds. This serves blind viewers without redubbing a voice-over that has no spare time.
+  - No flashing. On-screen text keeps 4.5:1 contrast, including the title card over the dimmed map.
 
 ### 4.4 A clean zoom-out
 
-Beat 5 needs the cluster rendering (M3) to look settled when zooming out: no pin flicker and no half-loaded tiles. The outlined sea-level pins must be visible at the zoom level the camera passes through, or the coastal preview is lost. Record against production, in the same region, after warming the tile cache.
+Beat 5 needs the cluster rendering (M3) to look settled when zooming out: no pin flicker and no half-loaded tiles. The dashed sea-level pins must be visible at the zoom level the camera passes through, or the coastal preview is lost. Record against production, in the same region, after warming the tile cache.
 
 ## 5. Voice-over script
 
@@ -146,7 +151,7 @@ Beat 5 needs the cluster rendering (M3) to look settled when zooming out: no pin
 
 **If it fails:**
 - (1) failing points to Beat 2 (the contrast isn't landing).
-- (2) failing points to the card hierarchy or caption (§4.2–4.3).
+- (2) failing points to the card hierarchy or legibility (§4.2–4.3).
 - (3) failing points to Beat 4. Either the trend isn't registering (the timing is too fast), or the "Projected" label isn't visible enough.
 
 Five people is directional, not conclusive. It will catch the big problems, not settle close calls.
@@ -165,5 +170,5 @@ Five people is directional, not conclusive. It will catch the big problems, not 
 - **Recorded voice-over or live narration?** A scripted voice-over is recommended for the first 30 s, because the timing now has no slack.
 - **Rehearse the script against a stopwatch** before recording the screen capture. If it runs over 30 s, apply the cut in §5 first.
 - **Beat 1 is 4 seconds.** Check that the required card can be read in that time. If not, let it overlap the start of Beat 2 rather than slowing the voice-over.
-- **Assumption to check:** that graders watch at speed or with sound off. The design holds either way, but if it's wrong the caption requirement matters less.
-- **Hand to `/include`:** caption file (.srt, not auto-captions), on-screen contrast, and whether the "Projected" treatment is distinguishable without colour.
+- **Assumption to check:** that graders watch at speed or with sound off. The design holds either way, because the card carries the text on screen.
+- **Done by `/include`:** caption plan, descriptive transcript and contrast are in §4.3. The "Projected" treatment (a text label, and dashed pins with a wave glyph) is specified in spec §7.4.
