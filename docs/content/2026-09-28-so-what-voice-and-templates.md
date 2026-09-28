@@ -1,6 +1,6 @@
 # So What? — Voice and Templates
 
-**Date:** 2026-09-28 (updated for spec rev. 7: today first, trend lines, sea level rise)
+**Date:** 2026-09-28 (updated for spec rev. 7: today first, trend lines, sea level rise; §10 added from the [states and edge cases review](../resilience/2026-09-28-so-what-states-and-edge-cases.md))
 **Status:** Draft. Wildfire trend and sea-level-rise wording are provisional until M1 confirms the data.
 **Related:** [design spec](../superpowers/specs/2026-09-27-so-what-design.md) §1 (today first, then the trend), §5.5 (text), §7.4 (card and panel order), §15 (limitations) · [grader's first 30 seconds](../journeys/2026-09-28-grader-first-30-seconds.md)
 
@@ -9,7 +9,8 @@ This document sets how every risk card speaks, then gives the text itself:
 - a `so_what` template for every today risk (air, heat, fire) × place kind, plus a sentence for `low`;
 - a **trend** template for each risk climate change is making worse (heat, and fire if adopted);
 - a **sea-level-rise** template for each place kind (projection only);
-- the `detail` line formats, the panel's fixed labels, and a proposed "what you can do" tip per risk type.
+- the `detail` line formats, the panel's fixed labels, and a proposed "what you can do" tip per risk type;
+- the messages for loading, empty and error states (§10).
 
 It addresses three gaps from the Intent review:
 
@@ -275,7 +276,114 @@ Specified in spec §7.4: fixed data in `web/lib/tips.ts`, keyed by risk type, sh
 
 ---
 
-## 10. Pending questions
+## 10. Messages: loading, empty and error states
+
+Every state in the [states and edge cases review](../resilience/2026-09-28-so-what-states-and-edge-cases.md) that shows words, as applied in spec rev. 10 (§7.4–7.6, §10.1). Where the spec previously had wording, the change and the reason are noted.
+
+**Rules for these messages** (the five principles, applied):
+- Say what happened, then what the person can do. Every message has a way forward: a retry, another entry action, or a filter to turn on.
+- Never blame the person ("Invalid zip"). Never promise a time ("in a few minutes") we can't keep.
+- "Flagged" means `elevated` or above today, or a sea-level-rise flag. It's the word the panel already uses ("Not flagged today"), so it's safe to reuse. "Not flagged" never becomes "safe" or "low-risk" (§2).
+- No "Oops", "Uh oh" or "Something went wrong." Name the thing that isn't working.
+- Loading is shown, never announced. Results and errors are announced once, in the polite live region.
+- `{n}` uses the plural helper ("1 place", "2 places"). `{types}` joins names with commas and "and" ("heat, air and wildfire"), and reads "all risk types" when all four are on.
+
+### Entry: location
+
+| State | Shown | Announced |
+|---|---|---|
+| Finding location (button text) | Finding your location… | — |
+| Denied | Location is off, so here's an example place. You can also search by zip code. | Location is off. Showing an example: {place}. |
+| Timed out or unavailable | We couldn't get your location, so here's an example place. You can also search by zip code. | Location unavailable. Showing an example: {place}. |
+| Outside LA County | You're outside LA County, the only area So What? covers. Here's an example place to start. | Outside LA County. Showing an example: {place}. |
+| Blocked in browser settings (hint under the button) | Location is blocked in your browser settings. | — |
+
+*Replaces* the spec's single "So What? covers LA County — here's a place to start," which was wrong for people in LA who said no.
+
+### Entry: zip code
+
+Errors appear under the field and are announced with the same text.
+
+| State | Text |
+|---|---|
+| Empty | Enter a 5-digit zip code. |
+| Wrong format | Zip codes are 5 digits, like 90012. |
+| Not found | We don't have {zip} as an LA County zip code. Try a nearby zip, or use your location. |
+| Service unavailable | Zip search isn't working right now. Try again, or see an example place. |
+
+*Replaces* "That zip isn't in LA County (yet)." "(Yet)" promises coverage outside LA that spec §2 rules out. The new wording is also true for PO-box-only zips inside LA, which have no area on the map.
+
+### Nothing flagged near an entry point
+
+Shown in the list's note area and announced; the map then moves to the nearest flagged place.
+
+| Entry | Text |
+|---|---|
+| Location | Nothing is flagged right around you with these filters. The nearest flagged place is {place}, {distance} away. |
+| Zip | Nothing is flagged in {zip} with these filters. The nearest flagged place is {place}, {distance} away. |
+| Only sea level rise selected | Projected coastal flooding only affects places near the coast. The nearest is {place}, {distance} away. |
+
+*Replaces* "No elevated risks right around you — nearest is X, 1.4 miles away." "Elevated" was wrong for sea-only filters, "around you" was wrong after a zip search, and "no risks" came close to "safe."
+
+### "Places near here" list
+
+| State | Text |
+|---|---|
+| Line under the heading (what distances are measured from) | Distances from your location. · Distances from {zip}. · Distances from the center of the map. · Distances from {place}. |
+| Nothing flagged in view | No flagged places in view. These are the nearest. *(unchanged)* |
+| Nothing flagged in view, only sea level rise selected | No projected coastal flooding in view. These are the nearest places near the coast. |
+| Map outside LA County | This part of the map is outside LA County. These are the nearest LA County places. |
+| No risk types selected | No risk types selected. Turn one on to see places. |
+| Filters match nothing in the county | No places match these filters. Turn on more risk types. *(unchanged)* |
+| Place panel's "Nearby places", none match | No other places nearby match these filters. |
+
+### Filter announcements
+
+| State | Announced |
+|---|---|
+| Places in view | Showing {n} places in view for {types}. |
+| None in view | No places in view for {types}. The list shows the nearest. |
+| None selected | No risk types selected. |
+
+*Changes* the spec's "Showing {n} places for {types}" by adding "in view," so the count isn't heard as a county total.
+
+### Loading
+
+| Where | Text |
+|---|---|
+| Map placeholder | Loading map… |
+| List refreshing, place opening | No text. The list dims and is marked busy; the link being opened shows a pending state. |
+
+### Errors and unavailable data
+
+| State | Shown | Announced |
+|---|---|---|
+| Place data unavailable (map and list) | Place data isn't loading right now. Try again later. **[Try again]** | Place data isn't loading right now. |
+| Place page can't load (`<h1>`) | This place didn't load | — |
+| Place page can't load (body) | Place data isn't loading right now. Try again later, or read about the data in the meantime. **[Try again]** **[About the data]** | — |
+| Map background not loading (notice in the map area) | The map background isn't loading. Places and the list still work. | — |
+| Offline | You're offline. The map and list will update when you reconnect. | You're offline. |
+| Back online | *(notice disappears)* | Back online. |
+
+*Changes* the spec's "Try again in a few minutes" to "Try again later." When the database's free quota runs out, it stays blocked until the monthly reset, so "a few minutes" could be a month.
+
+### Not found (`/places/[slug]` with an unknown slug)
+
+- **`<h1>`:** We can't find that place
+- **Body:** The link may be mistyped, or the place may no longer be in our data.
+- **Actions:** Go to the map · Show me an example
+
+### Formatting helpers
+
+| Value | Rule | Examples |
+|---|---|---|
+| Distance | Under 0.1: "less than 0.1 miles". Under 10: one decimal. 10 and up: whole numbers. Exactly 1: "mile". Never "mi". | less than 0.1 miles · 1 mile · 0.3 miles · 12 miles |
+| Counts | Thousands separator | 1,234 places |
+| Footer | Data date from `meta.build_date` | Data as of March 4, 2027. |
+
+---
+
+## 11. Pending questions
 
 - **M1 decides:** the extreme-heat-day definition; whether fire gets a trend line and what its metric is; the sea-level-rise amount, CoSMoS layer, and whether `{condition}` is tides or a storm.
 - **Consequence claims need citations too.** The spec cites the *data* on each card, but not claims like "children are more sensitive to heat" or "heat makes it harder for students to learn." Proposal: the About page lists one public-health reference per claim (for example EPA for fine particles, CDC for heat illness, and published research on heat and learning), stored in `sources`. Each claim should be checked before M6. If one can't be supported, cut it. The same applies to the sea-level-rise consequences ("service may be moved", "may close").
