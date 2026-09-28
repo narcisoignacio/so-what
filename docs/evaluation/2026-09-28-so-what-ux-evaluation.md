@@ -1,7 +1,7 @@
 # So What? — UX Evaluation
 
 **Date:** 2026-09-28 (against spec rev. 10)
-**Status:** Applied to spec rev. 11 and the voice doc (§8, §10). D6: the recommended fifth filter, labelled **"Unflagged"** rather than "Places not flagged" (the filter group's legend became "Show"). P2-3 settled on **"Air pollution"** as the air risk's name, since "Air quality — High" would read as good air.
+**Status:** Applied to spec rev. 11 and the voice doc (§8, §10). D6: the recommended fifth filter, labelled **"Unflagged"** rather than "Places not flagged". A fifth checkbox then proved too tall on phones, so it became a small switch on each places-list heading row and in the map legend (idea #10 on the [idea board](../wireframes/wireframes-glyphs-thumbnails.html)); the filter legend stays "Show risks". P2-3 settled on **"Air pollution"** as the air risk's name, since "Air quality — High" would read as good air.
 **Related:** [design spec](../superpowers/specs/2026-09-27-so-what-design.md) · [voice and templates](../content/2026-09-28-so-what-voice-and-templates.md) · [grader's first 30 seconds](../journeys/2026-09-28-grader-first-30-seconds.md) · [accessibility review](../accessibility/2026-09-28-so-what-accessibility-review.md) · [states and edge cases](../resilience/2026-09-28-so-what-states-and-edge-cases.md)
 
 **What this covers.** One pass over the whole design as specified in rev. 10, as a check on the journey, voice, accessibility, wireframe and resilience passes before M0:

@@ -1008,13 +1008,30 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
 .m-map .map-zoom { top: var(--sp-3); right: var(--sp-3); }
 .m-legend-btn { position: absolute; bottom: var(--sp-3); left: var(--sp-3); }
 .anchor { position: relative; }
+
+/* places-list heading row: heading and Unflagged switch share one text baseline (idea #10) */
+.head-row { display: flex; align-items: baseline; gap: var(--sp-3); }
+.head-row.section-h { margin-bottom: 0; }
+.head-row + .list-sub { margin-bottom: var(--sp-2); }
+/* label + track as one unit; an inline-flex's baseline is its first item's (the label text) */
+.switch-field { display: inline-flex; align-items: center; gap: var(--sp-2);
+  margin: calc(var(--sp-1) * -1) 0; }
+/* the label is part of the target: 4px padding makes it 28px tall without growing the row */
+.switch-field label { padding: var(--sp-1) 0; cursor: pointer; }
+/* PROPOSED KIT ADDITION — small switch: 32×20 track (one heading line tall), 12px thumb, 4px inset.
+   Only with a visible <label for> beside it, which carries the touch target. */
+.wf .switch.switch-sm { width: var(--sp-8); height: var(--sp-5); }
+.wf .switch.switch-sm::after { width: var(--sp-3); height: var(--sp-3); }
+.wf .switch.switch-sm[aria-checked="true"]::after { left: var(--sp-4); }
+/* neutral pin: a place with nothing flagged, shown when Unflagged is on */
+.pin.neutral { width: var(--ic-sm); height: var(--ic-sm); border-color: var(--w-ink2); }
 </style>
 </head>
 <body data-view="grid">
   <header class="board-header">
     <div class="board-id">
       <h1 class="board-title">So What? — place panel wireframes</h1>
-      <p class="board-meta">Intent /wireframe · September 2026 · Full-page wireframes · spec rev. 8 · illustrative places and numbers</p>
+      <p class="board-meta">Intent /wireframe · September 2026 · Full-page wireframes · spec rev. 11 · illustrative places, numbers and data years</p>
     </div>
     <div class="board-controls">
       <nav class="view-toggle" aria-label="View">
@@ -1046,7 +1063,7 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
         <div class="wf">
           <header class="app-header">
             <a class="skip" href="#">Skip to main content</a>
-            <p class="t-title">So What?</p>
+            <a class="t-title" href="#">So What?</a>
             <p class="t-small muted grow">Climate risk at LA County places</p>
             <a class="link t-small" href="#">About &amp; sources</a>
           </header>
@@ -1054,10 +1071,10 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
             <fieldset class="row">
               <legend class="t-small muted">Show risks</legend>
               <div class="choices">
-                <label class="choice t-small"><input type="checkbox" checked> Air</label>
+                <label class="choice t-small"><input type="checkbox" checked> Air pollution</label>
                 <label class="choice t-small"><input type="checkbox" checked> Heat</label>
                 <label class="choice t-small"><input type="checkbox" checked> Wildfire</label>
-                <label class="choice t-small"><input type="checkbox" checked> Sea level rise (projected)</label>
+                <label class="choice t-small"><input type="checkbox" checked> Sea level rise</label>
               </div>
             </fieldset>
             <div class="zip grow">
@@ -1077,12 +1094,12 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
                 <div class="row t-small muted"><span>Bus stop</span><span>·</span><span>0.3 miles from your location</span></div>
               </div>
               <div class="row panel-actions">
-                <button class="btn btn-secondary btn-sm">Copy link</button>
+                <button class="btn btn-secondary btn-sm">Share</button>
                 <button class="btn btn-ghost btn-sm">Show on map</button>
               </div>
               <nav class="glance" aria-label="Risks at this place">
                 <a class="chip" href="#d1-heat"><span class="icon icon-sm" aria-hidden="true"></span>Heat — High</a>
-                <a class="chip" href="#d1-air"><span class="icon icon-sm" aria-hidden="true"></span>Air — Elevated</a>
+                <a class="chip" href="#d1-air"><span class="icon icon-sm" aria-hidden="true"></span>Air pollution — Elevated</a>
               </nav>
 
               <section class="risk anchor" aria-labelledby="d1-heat">
@@ -1097,34 +1114,38 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
                   <span class="badge badge-muted">Projected</span>
                   <p class="t-body">And it's getting hotter: this area is projected to go from about 6 to 20 extreme-heat days a year by mid-century.</p>
                 </div>
-                <p class="detail t-small muted">Urban Heat Island Index: 94th percentile in LA County</p>
+                <p class="detail t-small muted">Urban Heat Island Index: 94th percentile in LA County (2019 data)</p>
                 <p class="source t-caption muted">Source: <a class="link" href="#">CalEPA Urban Heat Island Index</a> · Projection: <a class="link" href="#">Cal-Adapt LOCA2</a>, SSP2-4.5, 1981–2010 vs. 2035–2064</p>
                 <p class="tip t-small">On hot days, cooling centers are open across LA County. <a class="link" href="#">Find one near you (LA County)</a></p>
               </section>
 
               <section class="risk" aria-labelledby="d1-air">
                 <div class="risk-head">
-                  <h2 id="d1-air" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Air</h2>
+                  <h2 id="d1-air" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Air pollution</h2>
                   <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span></span><span></span></span><span class="badge badge-muted">Elevated</span></span>
                 </div>
                 <p class="sowhat">Fine-particle air pollution here is higher than in 81% of California neighborhoods. Riders breathe it every time they wait, and it adds up over years of commuting.</p>
-                <p class="detail t-small muted">PM2.5: 81st percentile · Diesel PM: 77th percentile (statewide)</p>
+                <p class="detail t-small muted">PM2.5: 81st percentile · Diesel PM: 77th percentile (statewide, 2015–2017 data)</p>
                 <p class="source t-caption muted">Source: <a class="link" href="#">CalEnviroScreen 4.0 (OEHHA)</a></p>
                 <p class="tip t-small">Check today's air quality before long waits or outdoor exercise. <a class="link" href="#">AirNow</a></p>
               </section>
 
               <div class="anchor">
-                <button class="btn btn-secondary btn-block collapsed" aria-expanded="false">Not flagged today for wildfire <span class="glyph glyph-sm gl-chevron"></span></button>
+                <button class="btn btn-secondary btn-block collapsed" aria-expanded="false">Not flagged in current data for wildfire <span class="glyph glyph-sm gl-chevron"></span></button>
                 <div class="note-marker" style="top: calc(var(--sp-2) * -1); right: calc(var(--sp-3) * -1);">4</div>
               </div>
 
-              <h2 class="t-heading section-h">Nearby places</h2>
+              <div class="head-row section-h">
+                <h2 class="t-heading grow">Nearby places</h2>
+                <span class="switch-field"><label class="t-small" for="d1-unf">Unflagged</label><button class="switch switch-sm" id="d1-unf" role="switch" aria-checked="false"></button></span>
+              </div>
+              <p class="t-small muted list-sub">Flagged places only · nearest first</p>
               <ol class="list">
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Ave / 5th St</span><span class="t-small muted">Bus stop · Heat: High, Air: Elevated</span></span><span class="t-small muted">0.1 miles</span></a></li>
+                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Ave / 5th St</span><span class="t-small muted">Bus stop · Heat: High, Air pollution: Elevated</span></span><span class="t-small muted">0.1 miles</span></a></li>
                 <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Third Street Playground</span><span class="t-small muted">Playground · Heat: High</span></span><span class="t-small muted">0.2 miles</span></a></li>
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Elementary School</span><span class="t-small muted">School · Air: Elevated, Heat: Elevated</span></span><span class="t-small muted">0.4 miles</span></a></li>
+                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Elementary School</span><span class="t-small muted">School · Air pollution: Elevated, Heat: Elevated</span></span><span class="t-small muted">0.4 miles</span></a></li>
                 <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Oak Park</span><span class="t-small muted">Park · Heat: Elevated</span></span><span class="t-small muted">0.6 miles</span></a></li>
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Ave / 9th St</span><span class="t-small muted">Bus stop · Air: Elevated</span></span><span class="t-small muted">0.7 miles</span></a></li>
+                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Ave / 9th St</span><span class="t-small muted">Bus stop · Air pollution: Elevated</span></span><span class="t-small muted">0.7 miles</span></a></li>
               </ol>
             </main>
 
@@ -1148,7 +1169,8 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
                   <p class="row t-small"><span class="meter"><span class="on"></span><span class="on"></span><span></span></span> High</p>
                   <p class="row t-small"><span class="meter"><span class="on"></span><span class="on"></span><span class="on"></span></span> Severe</p>
                   <p class="row t-small"><span class="icon icon-sm" aria-hidden="true"></span> Dashed outline: projected coastal flooding by mid-century</p>
-                  <p class="t-caption muted">Only places flagged for the selected risks are shown.</p>
+                  <p class="row t-small"><span class="pin neutral" aria-hidden="true"></span> Not flagged for any risk</p>
+                  <p class="row t-small"><label class="grow" for="d1-leg">Show unflagged places</label><button class="switch switch-sm" id="d1-leg" role="switch" aria-checked="false"></button></p>
                 </div>
               </div>
               <p class="map-attrib t-caption muted">Tiles © provider · © OpenStreetMap contributors</p>
@@ -1159,11 +1181,11 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
 
       <!-- D2 coastal park -->
       <article class="frame" id="scr-d-coastal" style="width: 1440px">
-        <h3 class="frame-plate"><span>Coastal park — nothing flagged today + sea level rise</span><span class="frame-pos">2/6</span></h3>
+        <h3 class="frame-plate"><span>Coastal park — nothing flagged + sea level rise</span><span class="frame-pos">2/6</span></h3>
         <div class="wf">
           <header class="app-header">
             <a class="skip" href="#">Skip to main content</a>
-            <p class="t-title">So What?</p>
+            <a class="t-title" href="#">So What?</a>
             <p class="t-small muted grow">Climate risk at LA County places</p>
             <a class="link t-small" href="#">About &amp; sources</a>
           </header>
@@ -1171,10 +1193,10 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
             <fieldset class="row">
               <legend class="t-small muted">Show risks</legend>
               <div class="choices">
-                <label class="choice t-small"><input type="checkbox" checked> Air</label>
+                <label class="choice t-small"><input type="checkbox" checked> Air pollution</label>
                 <label class="choice t-small"><input type="checkbox" checked> Heat</label>
                 <label class="choice t-small"><input type="checkbox" checked> Wildfire</label>
-                <label class="choice t-small"><input type="checkbox" checked> Sea level rise (projected)</label>
+                <label class="choice t-small"><input type="checkbox" checked> Sea level rise</label>
               </div>
             </fieldset>
             <div class="zip grow">
@@ -1191,7 +1213,7 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
                 <div class="row t-small muted"><span>Park</span><span>·</span><span>1.2 miles from your location</span></div>
               </div>
               <div class="row panel-actions">
-                <button class="btn btn-secondary btn-sm">Copy link</button>
+                <button class="btn btn-secondary btn-sm">Share</button>
                 <button class="btn btn-ghost btn-sm">Show on map</button>
               </div>
 
@@ -1206,11 +1228,11 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
                   <span class="badge badge-muted">Projected</span>
                   <p class="t-body">And it's getting hotter: this area is projected to go from about 2 to 7 extreme-heat days a year by mid-century.</p>
                 </div>
-                <p class="detail t-small muted">Urban Heat Island Index: 38th percentile in LA County</p>
+                <p class="detail t-small muted">Urban Heat Island Index: 38th percentile in LA County (2019 data)</p>
                 <p class="source t-caption muted">Source: <a class="link" href="#">CalEPA Urban Heat Island Index</a> · Projection: <a class="link" href="#">Cal-Adapt LOCA2</a>, SSP2-4.5, 1981–2010 vs. 2035–2064</p>
               </section>
 
-              <button class="btn btn-secondary btn-block collapsed" aria-expanded="false">Not flagged today for air or wildfire <span class="glyph glyph-sm gl-chevron"></span></button>
+              <button class="btn btn-secondary btn-block collapsed" aria-expanded="false">Not flagged in current data for air pollution or wildfire <span class="glyph glyph-sm gl-chevron"></span></button>
 
               <section class="risk anchor" aria-labelledby="d2-sea">
                 <div class="note-marker" style="top: calc(var(--sp-3) * -1); right: calc(var(--sp-3) * -1);">2</div>
@@ -1224,11 +1246,15 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
                 <p class="tip t-small">See how rising seas and storms could affect the coast near you. <a class="link" href="#">Our Coast, Our Future</a></p>
               </section>
 
-              <h2 class="t-heading section-h">Nearby places</h2>
+              <div class="head-row section-h">
+                <h2 class="t-heading grow">Nearby places</h2>
+                <span class="switch-field"><label class="t-small" for="d2-unf">Unflagged</label><button class="switch switch-sm" id="d2-unf" role="switch" aria-checked="false"></button></span>
+              </div>
+              <p class="t-small muted list-sub">Flagged places only · nearest first</p>
               <ol class="list">
                 <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Seaside Playground</span><span class="t-small muted">Playground · Sea level rise: Projected</span></span><span class="t-small muted">0.1 miles</span></a></li>
                 <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Ocean Blvd / Pier Ave</span><span class="t-small muted">Bus stop · Sea level rise: Projected</span></span><span class="t-small muted">0.3 miles</span></a></li>
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Pier Ave / Main St</span><span class="t-small muted">Bus stop · Air: Elevated</span></span><span class="t-small muted">0.8 miles</span></a></li>
+                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Pier Ave / Main St</span><span class="t-small muted">Bus stop · Air pollution: Elevated</span></span><span class="t-small muted">0.8 miles</span></a></li>
               </ol>
             </main>
 
@@ -1249,7 +1275,8 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
                   <p class="row t-small"><span class="meter"><span class="on"></span><span class="on"></span><span></span></span> High</p>
                   <p class="row t-small"><span class="meter"><span class="on"></span><span class="on"></span><span class="on"></span></span> Severe</p>
                   <p class="row t-small"><span class="icon icon-sm" aria-hidden="true"></span> Dashed outline: projected coastal flooding by mid-century</p>
-                  <p class="t-caption muted">Only places flagged for the selected risks are shown.</p>
+                  <p class="row t-small"><span class="pin neutral" aria-hidden="true"></span> Not flagged for any risk</p>
+                  <p class="row t-small"><label class="grow" for="d2-leg">Show unflagged places</label><button class="switch switch-sm" id="d2-leg" role="switch" aria-checked="false"></button></p>
                 </div>
               </div>
               <p class="map-attrib t-caption muted">Tiles © provider · © OpenStreetMap contributors</p>
@@ -1264,7 +1291,7 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
         <div class="wf">
           <header class="app-header">
             <a class="skip" href="#">Skip to main content</a>
-            <p class="t-title">So What?</p>
+            <a class="t-title" href="#">So What?</a>
             <p class="t-small muted grow">Climate risk at LA County places</p>
             <a class="link t-small" href="#">About &amp; sources</a>
           </header>
@@ -1272,10 +1299,10 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
             <fieldset class="row">
               <legend class="t-small muted">Show risks</legend>
               <div class="choices">
-                <label class="choice t-small"><input type="checkbox" checked> Air</label>
+                <label class="choice t-small"><input type="checkbox" checked> Air pollution</label>
                 <label class="choice t-small"><input type="checkbox" checked> Heat</label>
                 <label class="choice t-small"><input type="checkbox" checked> Wildfire</label>
-                <label class="choice t-small"><input type="checkbox" checked> Sea level rise (projected)</label>
+                <label class="choice t-small"><input type="checkbox" checked> Sea level rise</label>
               </div>
             </fieldset>
             <div class="zip grow">
@@ -1292,11 +1319,11 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
                 <div class="row t-small muted"><span>School</span><span>·</span><span>2.4 miles from your location</span></div>
               </div>
               <div class="row panel-actions">
-                <button class="btn btn-secondary btn-sm">Copy link</button>
+                <button class="btn btn-secondary btn-sm">Share</button>
                 <button class="btn btn-ghost btn-sm">Show on map</button>
               </div>
               <nav class="glance anchor" aria-label="Risks at this place">
-                <a class="chip" href="#d3-air"><span class="icon icon-sm" aria-hidden="true"></span>Air — Severe</a>
+                <a class="chip" href="#d3-air"><span class="icon icon-sm" aria-hidden="true"></span>Air pollution — Severe</a>
                 <a class="chip" href="#d3-heat"><span class="icon icon-sm" aria-hidden="true"></span>Heat — High</a>
                 <a class="chip" href="#d3-fire"><span class="icon icon-sm" aria-hidden="true"></span>Wildfire — Elevated</a>
                 <div class="note-marker" style="top: calc(var(--sp-3) * -1); right: 0;">1</div>
@@ -1304,11 +1331,11 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
 
               <section class="risk" aria-labelledby="d3-air">
                 <div class="risk-head">
-                  <h2 id="d3-air" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Air</h2>
+                  <h2 id="d3-air" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Air pollution</h2>
                   <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span></span><span class="badge badge-muted">Severe</span></span>
                 </div>
                 <p class="sowhat">Fine-particle air pollution here is higher than in 98% of California neighborhoods. Students breathe it all school day, and most deeply during recess and sports.</p>
-                <p class="detail t-small muted">PM2.5: 98th percentile · Diesel PM: 96th percentile (statewide)</p>
+                <p class="detail t-small muted">PM2.5: 98th percentile · Diesel PM: 96th percentile (statewide, 2015–2017 data)</p>
                 <p class="source t-caption muted">Source: <a class="link" href="#">CalEnviroScreen 4.0 (OEHHA)</a></p>
                 <p class="tip t-small">Check today's air quality before long waits or outdoor exercise. <a class="link" href="#">AirNow</a></p>
               </section>
@@ -1323,7 +1350,7 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
                   <span class="badge badge-muted">Projected</span>
                   <p class="t-body">And it's getting hotter: this area is projected to go from about 9 to 27 extreme-heat days a year by mid-century.</p>
                 </div>
-                <p class="detail t-small muted">Urban Heat Island Index: 92nd percentile in LA County</p>
+                <p class="detail t-small muted">Urban Heat Island Index: 92nd percentile in LA County (2019 data)</p>
                 <p class="source t-caption muted">Source: <a class="link" href="#">CalEPA Urban Heat Island Index</a> · Projection: <a class="link" href="#">Cal-Adapt LOCA2</a>, SSP2-4.5, 1981–2010 vs. 2035–2064</p>
                 <p class="tip t-small">On hot days, cooling centers are open across LA County. <a class="link" href="#">Find one near you (LA County)</a></p>
               </section>
@@ -1335,16 +1362,20 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
                   <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span></span><span></span></span><span class="badge badge-muted">Elevated</span></span>
                 </div>
                 <p class="sowhat">This school is in CAL FIRE's Moderate fire hazard zone. Fire could spread here, so families should know the school's evacuation and pickup plan.</p>
-                <p class="detail t-small muted">CAL FIRE Fire Hazard Severity Zone: Moderate</p>
+                <p class="detail t-small muted">CAL FIRE Fire Hazard Severity Zone: Moderate (2025 map)</p>
                 <p class="source t-caption muted">Source: <a class="link" href="#">CAL FIRE Office of the State Fire Marshal</a>, 2025 LRA maps as adopted</p>
                 <p class="tip t-small">Sign up for emergency alerts and learn your evacuation zone. <a class="link" href="#">Ready LA County</a></p>
               </section>
 
-              <h2 class="t-heading section-h">Nearby places</h2>
+              <div class="head-row section-h">
+                <h2 class="t-heading grow">Nearby places</h2>
+                <span class="switch-field"><label class="t-small" for="d3-unf">Unflagged</label><button class="switch switch-sm" id="d3-unf" role="switch" aria-checked="false"></button></span>
+              </div>
+              <p class="t-small muted list-sub">Flagged places only · nearest first</p>
               <ol class="list">
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Eastside Park</span><span class="t-small muted">Park · Air: Severe, Heat: High</span></span><span class="t-small muted">0.2 miles</span></a></li>
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Mission Rd / 1st St</span><span class="t-small muted">Bus stop · Air: Severe</span></span><span class="t-small muted">0.3 miles</span></a></li>
-                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Eastside Playground</span><span class="t-small muted">Playground · Heat: High, Air: High</span></span><span class="t-small muted">0.5 miles</span></a></li>
+                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Eastside Park</span><span class="t-small muted">Park · Air pollution: Severe, Heat: High</span></span><span class="t-small muted">0.2 miles</span></a></li>
+                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Mission Rd / 1st St</span><span class="t-small muted">Bus stop · Air pollution: Severe</span></span><span class="t-small muted">0.3 miles</span></a></li>
+                <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Eastside Playground</span><span class="t-small muted">Playground · Heat: High, Air pollution: High</span></span><span class="t-small muted">0.5 miles</span></a></li>
               </ol>
             </main>
 
@@ -1365,7 +1396,8 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
                   <p class="row t-small"><span class="meter"><span class="on"></span><span class="on"></span><span></span></span> High</p>
                   <p class="row t-small"><span class="meter"><span class="on"></span><span class="on"></span><span class="on"></span></span> Severe</p>
                   <p class="row t-small"><span class="icon icon-sm" aria-hidden="true"></span> Dashed outline: projected coastal flooding by mid-century</p>
-                  <p class="t-caption muted">Only places flagged for the selected risks are shown.</p>
+                  <p class="row t-small"><span class="pin neutral" aria-hidden="true"></span> Not flagged for any risk</p>
+                  <p class="row t-small"><label class="grow" for="d3-leg">Show unflagged places</label><button class="switch switch-sm" id="d3-leg" role="switch" aria-checked="false"></button></p>
                 </div>
               </div>
               <p class="map-attrib t-caption muted">Tiles © provider · © OpenStreetMap contributors</p>
@@ -1382,7 +1414,7 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
         <p><span class="note-num">2</span> Heading: risk glyph + name on the left, level meter + word on the right (decided: meter #1, three ascending slots). Glyph circles are placeholders for icon art. The So What? sentence is still the largest text, and screen-reader users hear the level first. The at-a-glance row above appears because this place has 2 flagged cards.</p>
         <p><span class="note-num">3</span> Trend block: dashed surface, "Projected" badge before the sentence in the DOM. It reads as a different kind of statement at a glance, without colour.</p>
         <p><span class="note-num">4</span> Low risks collapse to one disclosure button (aria-expanded). The panel stays about the risks that are flagged.</p>
-        <p><span class="note-num">5</span> The map is one tab stop with its keyboard help visible; pins are hidden from assistive tech. The legend is text, and states that unflagged places are hidden (closes review gap 3).</p>
+        <p><span class="note-num">5</span> The map is one tab stop with its keyboard help visible; pins are hidden from assistive tech. The legend is text. <strong>Rev. 11:</strong> it explains the neutral pin and carries the Unflagged switch, the same setting as the switch on every places-list heading ("Nearby places" here), so it's reachable from the map and from the list (idea #10).</p>
       </div>
       <div class="note-group" data-for="scr-d-coastal">
         <p class="note-frame">Coastal park</p>
@@ -1422,10 +1454,10 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
             <fieldset class="anchor" style="margin-top: var(--sp-3);">
               <legend class="t-small muted">Show risks</legend>
               <div class="m-filters">
-                <label class="choice t-small"><input type="checkbox" checked> Air</label>
+                <label class="choice t-small"><input type="checkbox" checked> Air pollution</label>
                 <label class="choice t-small"><input type="checkbox" checked> Heat</label>
                 <label class="choice t-small"><input type="checkbox" checked> Wildfire</label>
-                <label class="choice t-small"><input type="checkbox" checked> Sea (projected)</label>
+                <label class="choice t-small"><input type="checkbox" checked> Sea level rise</label>
               </div>
               <div class="note-marker" style="top: 0; right: 0;">2</div>
             </fieldset>
@@ -1436,14 +1468,18 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
             </div>
           </div>
           <main class="screen-body">
-            <p class="status t-small muted anchor">20 places near 90012 · nearest first<span class="note-marker" style="top: calc(var(--sp-1) * -1); right: 0;">3</span></p>
-            <h2 class="t-heading">Places near here</h2>
+            <div class="head-row status anchor">
+              <h2 class="t-heading grow">Places near here</h2>
+              <span class="switch-field"><label class="t-small" for="m1-unf">Unflagged</label><button class="switch switch-sm" id="m1-unf" role="switch" aria-checked="false"></button></span>
+              <div class="note-marker" style="top: calc(var(--sp-4) * -1); right: calc(var(--sp-2) * -1);">4</div>
+            </div>
+            <p class="t-small muted list-sub anchor">20 flagged places near 90012 · nearest first<span class="note-marker" style="top: calc(var(--sp-1) * -1); right: 0;">3</span></p>
             <ol class="list" style="margin-top: var(--sp-2);">
-              <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Ave / 3rd St</span><span class="t-small muted">Bus stop · Heat: High, Air: Elevated</span></span><span class="t-caption muted">0.3 miles</span></a></li>
+              <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Ave / 3rd St</span><span class="t-small muted">Bus stop · Heat: High, Air pollution: Elevated</span></span><span class="t-caption muted">0.3 miles</span></a></li>
               <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Third Street Playground</span><span class="t-small muted">Playground · Heat: High</span></span><span class="t-caption muted">0.4 miles</span></a></li>
-              <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Elementary School</span><span class="t-small muted">School · Air: Elevated, Heat: Elevated</span></span><span class="t-caption muted">0.6 miles</span></a></li>
+              <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Elementary School</span><span class="t-small muted">School · Air pollution: Elevated, Heat: Elevated</span></span><span class="t-caption muted">0.6 miles</span></a></li>
               <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Oak Park</span><span class="t-small muted">Park · Heat: Elevated</span></span><span class="t-caption muted">0.8 miles</span></a></li>
-              <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Ave / 9th St</span><span class="t-small muted">Bus stop · Air: Elevated</span></span><span class="t-caption muted">0.9 miles</span></a></li>
+              <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Ave / 9th St</span><span class="t-small muted">Bus stop · Air pollution: Elevated</span></span><span class="t-caption muted">0.9 miles</span></a></li>
             </ol>
           </main>
         </div>
@@ -1463,7 +1499,7 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
             <div class="row t-small muted" style="margin-top: var(--sp-1);"><span>Bus stop · 0.3 miles</span></div>
             <nav class="glance" aria-label="Risks at this place">
               <a class="chip" href="#m2-heat"><span class="icon icon-sm" aria-hidden="true"></span>Heat — High</a>
-              <a class="chip" href="#m2-air"><span class="icon icon-sm" aria-hidden="true"></span>Air — Elevated</a>
+              <a class="chip" href="#m2-air"><span class="icon icon-sm" aria-hidden="true"></span>Air pollution — Elevated</a>
             </nav>
             <section class="risk anchor" aria-labelledby="m2-heat">
               <div class="note-marker" style="top: calc(var(--sp-3) * -1); right: calc(var(--sp-2) * -1);">1</div>
@@ -1482,7 +1518,7 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
             </section>
             <section class="risk" aria-labelledby="m2-air">
               <div class="risk-head">
-                <h2 id="m2-air" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Air</h2>
+                <h2 id="m2-air" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Air pollution</h2>
                 <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span></span><span></span></span><span class="badge badge-muted">Elevated</span></span>
               </div>
               <p class="sowhat">Fine-particle air pollution here is higher than in 81% of California neighborhoods. Riders breathe it every time they wait, and it adds up over years of commuting.</p>
@@ -1490,12 +1526,16 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
               <button class="btn btn-ghost btn-sm about" aria-expanded="false">About this data <span class="glyph glyph-sm gl-chevron"></span></button>
               <p class="tip t-small">Check today's air quality before long waits or outdoor exercise. <a class="link" href="#">AirNow</a></p>
             </section>
-            <button class="btn btn-secondary btn-block collapsed" aria-expanded="false">Not flagged today for wildfire <span class="glyph glyph-sm gl-chevron"></span></button>
+            <button class="btn btn-secondary btn-block collapsed" aria-expanded="false">Not flagged in current data for wildfire <span class="glyph glyph-sm gl-chevron"></span></button>
             <div class="row anchor" style="margin-top: var(--sp-4);">
-              <button class="btn btn-secondary btn-sm">Copy link</button>
+              <button class="btn btn-secondary btn-sm">Share</button>
               <div class="note-marker" style="top: calc(var(--sp-3) * -1); left: calc(var(--sp-23) + var(--sp-4));">2</div>
             </div>
-            <h2 class="t-heading section-h">Nearby places</h2>
+            <div class="head-row section-h">
+                <h2 class="t-heading grow">Nearby places</h2>
+                <span class="switch-field"><label class="t-small" for="m2-unf">Unflagged</label><button class="switch switch-sm" id="m2-unf" role="switch" aria-checked="false"></button></span>
+              </div>
+              <p class="t-small muted list-sub">Flagged places only · nearest first</p>
             <ol class="list">
               <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Harbor Ave / 5th St</span><span class="t-small muted">Bus stop · Heat: High</span></span><span class="t-caption muted">0.1 miles</span></a></li>
               <li><a class="list-row" href="#"><span class="text-stack grow"><span class="t-body-strong">Third Street Playground</span><span class="t-small muted">Playground · Heat: High</span></span><span class="t-caption muted">0.2 miles</span></a></li>
@@ -1517,14 +1557,14 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
             <h1 class="t-title">Eastside Elementary School</h1>
             <div class="row t-small muted" style="margin-top: var(--sp-1);"><span>School · 2.4 miles</span></div>
             <nav class="glance anchor" aria-label="Risks at this place">
-              <a class="chip" href="#m3-air"><span class="icon icon-sm" aria-hidden="true"></span>Air — Severe</a>
+              <a class="chip" href="#m3-air"><span class="icon icon-sm" aria-hidden="true"></span>Air pollution — Severe</a>
               <a class="chip" href="#m3-heat"><span class="icon icon-sm" aria-hidden="true"></span>Heat — High</a>
               <a class="chip" href="#m3-fire"><span class="icon icon-sm" aria-hidden="true"></span>Wildfire — Elevated</a>
               <div class="note-marker" style="top: calc(var(--sp-3) * -1); right: calc(var(--sp-2) * -1);">1</div>
             </nav>
             <section class="risk" aria-labelledby="m3-air">
               <div class="risk-head">
-                <h2 id="m3-air" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Air</h2>
+                <h2 id="m3-air" class="t-body-strong risk-name"><span class="icon icon-md" aria-hidden="true"></span>Air pollution</h2>
                 <span class="level"><span class="meter" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span></span><span class="badge badge-muted">Severe</span></span>
               </div>
               <p class="sowhat">Fine-particle air pollution here is higher than in 98% of California neighborhoods. Students breathe it all school day, and most deeply during recess and sports.</p>
@@ -1566,13 +1606,14 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
       <div class="note-group" data-for="scr-m-list">
         <p class="note-frame">Start — places list</p>
         <p><span class="note-num">1</span> List/Map toggle: two buttons with aria-pressed, state kept in the URL. The list is the default below tablet width, per spec §7.5 (reflow at 320px).</p>
-        <p><span class="note-num">2</span> <strong>Decided:</strong> filters stay visible on phones. The four checkboxes cost about 80px above the list, which is acceptable for one-tap filtering.</p>
-        <p><span class="note-num">3</span> This status line is the visible twin of the live-region announcement, so sighted users get the same confirmation.</p>
+        <p><span class="note-num">2</span> <strong>Decided:</strong> filters stay visible on phones. The four checkboxes cost about 84px above the list, which is acceptable for one-tap filtering. <strong>Rev. 11:</strong> labels use the voice doc's risk names; the sea label drops "(projected)" so it fits one line, since the legend, pin and card all say "Projected".</p>
+        <p><span class="note-num">3</span> This status line is the visible twin of the live-region announcement, so sighted users get the same confirmation. It says "flagged" while Unflagged is off, so a missing stop reads as hidden, not absent.</p>
+        <p><span class="note-num">4</span> <strong>Decided (idea #10):</strong> Unflagged is a small switch on the heading's baseline, not a fifth checkbox. It adds no height, and it sits where the question comes up ("where's my stop?"). Track 32×20; the "Unflagged" label is a <code>&lt;label for&gt;</code>, so tapping the word works and the target stays at least 24px.</p>
       </div>
       <div class="note-group" data-for="scr-m-featured">
         <p class="note-frame">Featured stop — panel</p>
         <p><span class="note-num">1</span> <strong>Decided:</strong> on phones, the detail line, full source names and projection method sit behind "About this data" (aria-expanded), with a short source line always visible. The heat card is now about one screen: sentence (about 7 lines at 320px), trend, short source, disclosure, tip. Wider screens show everything inline, in the same DOM order.</p>
-        <p><span class="note-num">2</span> Copy link moves below the cards on mobile, so the first screen is the place and its top risk rather than actions.</p>
+        <p><span class="note-num">2</span> Share (Web Share API, falling back to copying the link) moves below the cards on mobile, so the first screen is the place and its top risk rather than actions.</p>
       </div>
       <div class="note-group" data-for="scr-m-all">
         <p class="note-frame">School, all three — panel</p>

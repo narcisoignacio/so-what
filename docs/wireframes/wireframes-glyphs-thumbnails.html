@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>So What? — glyph ideas</title>
+<title>So What? — glyph &amp; filter ideas</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%234338ca'/%3E%3C/svg%3E">
 <style>
 /* ═══════════════════════════════════════════════════════════════════
@@ -975,12 +975,38 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
 .level { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .sowhat { font-size: var(--t-lg); line-height: var(--t-xl-lh); margin-top: var(--sp-3); }
 .glance { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+
+/* #9–13 filters at phone width: the float is the 320px screen's content width (320 − 2 × 16) */
+.phone { width: calc(var(--sp-18) * 4); }
+.phone fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.phone legend { padding: 0; }
+.m-filters { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--sp-2); }
+.chip-set { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-1); }
+.status-row { display: flex; align-items: center; gap: var(--sp-2); margin-top: var(--sp-3); }
+.list-head { margin-top: var(--sp-2); }
+.pin.neutral { width: var(--ic-sm); height: var(--ic-sm); border-color: var(--w-ink2); }
+.legend-row { display: flex; align-items: center; gap: var(--sp-2); }
+.legend-row + .legend-row { margin-top: var(--sp-2); }
+
+/* #10 list heading row: heading and switch share one text baseline */
+.head-row { display: flex; align-items: baseline; gap: var(--sp-3); margin-top: var(--sp-3); }
+/* label + track as one unit; an inline-flex's baseline is its first item's (the label text),
+   so the row aligns by text while the track centres on the label */
+.switch-field { display: inline-flex; align-items: center; gap: var(--sp-2);
+  margin: calc(var(--sp-1) * -1) 0; }
+/* the label is part of the target: 4px padding makes it 28px tall without growing the row */
+.switch-field label { padding: var(--sp-1) 0; cursor: pointer; }
+/* PROPOSED KIT ADDITION — small switch: 32×20 track (one heading line tall), 12px thumb, 4px inset.
+   Only with a visible <label for> beside it, which carries the touch target. */
+.wf .switch.switch-sm { width: var(--sp-8); height: var(--sp-5); }
+.wf .switch.switch-sm::after { width: var(--sp-3); height: var(--sp-3); }
+.wf .switch.switch-sm[aria-checked="true"]::after { left: var(--sp-4); }
 </style>
 </head>
 <body data-view="grid">
   <header class="board-header">
     <div class="board-id">
-      <h1 class="board-title">So What? — level &amp; risk glyph ideas</h1>
+      <h1 class="board-title">So What? — glyph &amp; filter ideas</h1>
       <p class="board-meta">Intent /wireframe · September 2026 · Idea board (thumbnails) · react to the mechanisms, not the drawing</p>
     </div>
     <div class="board-controls">
@@ -996,7 +1022,7 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
 
   <nav class="slide-nav">
     <span class="slide-section">Level glyph</span>
-    <span class="slide-pos">1/8</span>
+    <span class="slide-pos">1/13</span>
     <span class="nav-hint slides-hint">← → to page · Esc returns to grid</span>
     <button data-prev aria-label="Previous"></button>
     <button data-next aria-label="Next"></button>
@@ -1146,6 +1172,126 @@ body[data-view="slides"] .note-group:not(.active) { display: none; }
             <span class="idea-num">#8</span>
             <p class="idea-title">At-a-glance chips: risk glyph + meter</p>
             <p class="idea-desc">Glyph for the risk, meter for the level, no level word. The most compact, and the row scans like a small chart. But two glyphs in one chip is dense, and it drops the word, so it relies on the reader having learned the meter.</p>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="board-section" data-section="Unflagged on phones — showing hidden places without a taller filter block (rev. 11)">
+    <h2 class="section-label">Unflagged on phones — showing hidden places without a taller filter block (rev. 11)</h2>
+    <div class="frame-grid">
+
+      <article class="frame" style="width: 360px">
+        <div class="wf">
+          <div class="vignette"><div class="float phone">
+            <fieldset>
+              <legend class="t-small muted">Show</legend>
+              <div class="m-filters">
+                <label class="choice t-small"><input type="checkbox" checked> Air pollution</label>
+                <label class="choice t-small"><input type="checkbox" checked> Heat</label>
+                <label class="choice t-small"><input type="checkbox" checked> Wildfire</label>
+                <label class="choice t-small"><input type="checkbox" checked> Sea level rise (projected)</label>
+                <label class="choice t-small"><input type="checkbox"> Unflagged</label>
+              </div>
+            </fieldset>
+            <p class="t-small muted status-row">20 places near 90012</p>
+            <h2 class="t-heading list-head">Places near here</h2>
+            <p class="t-small muted">Showing flagged places only. <button class="link t-small">Show unflagged too</button></p>
+          </div></div>
+          <div class="idea-caption">
+            <span class="idea-num">#9</span>
+            <p class="idea-title">A fifth checkbox (rev. 11 as written)</p>
+            <p class="idea-desc">Unflagged joins the risks in the 2-column grid. It lands alone on a third row (+32px), the rev. 11 names already wrap "Sea level rise (projected)" to two lines, and there are now two controls for one setting: the checkbox and the "Show unflagged too" button under the list. About 116px above the list, up from 84px.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="frame" style="width: 360px">
+        <div class="wf">
+          <div class="vignette"><div class="float phone">
+            <fieldset>
+              <legend class="t-small muted">Show risks</legend>
+              <div class="m-filters">
+                <label class="choice t-small"><input type="checkbox" checked> Air pollution</label>
+                <label class="choice t-small"><input type="checkbox" checked> Heat</label>
+                <label class="choice t-small"><input type="checkbox" checked> Wildfire</label>
+                <label class="choice t-small"><input type="checkbox" checked> Sea level rise</label>
+              </div>
+            </fieldset>
+            <div class="head-row">
+              <h2 class="t-heading grow">Places near here</h2>
+              <span class="switch-field">
+                <label class="t-small" for="v10-switch">Unflagged</label>
+                <button class="switch switch-sm" id="v10-switch" role="switch" aria-checked="false"></button>
+              </span>
+            </div>
+            <p class="t-small muted">20 flagged places near 90012</p>
+          </div></div>
+          <div class="idea-caption">
+            <span class="idea-num">#10</span>
+            <p class="idea-title">A small switch on the list's heading row</p>
+            <p class="idea-desc">The four risks stay a 2×2 grid; Unflagged becomes a small switch on the baseline of "Places near here", on a row that already exists. No extra height, one control instead of two, placed where the question comes up: "where's my stop?" The status line under it says "flagged" while the switch is off. The track is 32×20 (the kit's is 40×24); the label is part of the target, so it still meets 24px. The legend goes back to "Show risks"; phone map view's Legend panel carries the same switch. "(projected)" moves off the sea label to the legend and card, where it already appears. Chosen.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="frame" style="width: 360px">
+        <div class="wf">
+          <div class="vignette"><div class="float phone">
+            <fieldset>
+              <legend class="t-small muted">Show</legend>
+              <div class="chip-set">
+                <button class="chip" aria-pressed="true">Air pollution</button>
+                <button class="chip" aria-pressed="true">Heat</button>
+                <button class="chip" aria-pressed="true">Wildfire</button>
+                <button class="chip" aria-pressed="true">Sea level rise</button>
+                <button class="chip" aria-pressed="false">Unflagged</button>
+              </div>
+            </fieldset>
+            <p class="t-small muted status-row">20 places near 90012</p>
+            <h2 class="t-heading list-head">Places near here</h2>
+          </div></div>
+          <div class="idea-caption">
+            <span class="idea-num">#11</span>
+            <p class="idea-title">Toggle chips instead of checkboxes</p>
+            <p class="idea-desc">All five as pressed/unpressed chips that wrap to two rows: about the same height as today's 2×2 grid. Compact, but it reopens a decision: the accessibility review chose native checkboxes, which announce "checked" and group under a legend. Chips announce "pressed", and Unflagged still reads as a fifth risk.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="frame" style="width: 360px">
+        <div class="wf">
+          <div class="vignette"><div class="float phone">
+            <button class="btn btn-secondary btn-sm" aria-expanded="false">Filters · 4 of 5 on <span class="glyph glyph-sm gl-chevron"></span></button>
+            <p class="t-small muted status-row">20 places near 90012</p>
+            <h2 class="t-heading list-head">Places near here</h2>
+          </div></div>
+          <div class="idea-caption">
+            <span class="idea-num">#12</span>
+            <p class="idea-title">Filters behind a disclosure</p>
+            <p class="idea-desc">One button that opens all five checkboxes. Saves the most space (about 50px), but filtering becomes two taps and which risks are on is no longer visible. The accessibility review decided against this for phones; it's here for the record.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="frame" style="width: 360px">
+        <div class="wf">
+          <div class="vignette"><div class="float phone">
+            <div class="card"><div class="card-body">
+              <p class="t-body-strong">Legend</p>
+              <div class="legend-row" style="margin-top: var(--sp-2);"><span class="pin neutral" aria-hidden="true"></span><span class="t-small grow">Not flagged for any risk</span></div>
+              <div class="legend-row">
+                <span class="t-small grow" id="v13-label">Show unflagged places</span>
+                <button class="switch" role="switch" aria-checked="false" aria-labelledby="v13-label"></button>
+              </div>
+            </div></div>
+          </div></div>
+          <div class="idea-caption">
+            <span class="idea-num">#13</span>
+            <p class="idea-title">Only in the map legend</p>
+            <p class="idea-desc">The switch lives with the neutral pin it explains, and the filter block doesn't change at all. But the list path loses it: the spec promises every task works without the map, and finding your own stop is the task this exists for. Rejected; #10 borrows the legend switch as a second home.</p>
           </div>
         </div>
       </article>

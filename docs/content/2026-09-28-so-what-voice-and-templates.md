@@ -1,6 +1,6 @@
 # So What? — Voice and Templates
 
-**Date:** 2026-09-28 (updated for spec rev. 7: today first, trend lines, sea level rise; §10 added from the [states and edge cases review](../resilience/2026-09-28-so-what-states-and-edge-cases.md); rev. 11: risk names, data years, "current data", start page and Unflagged labels, from the [UX evaluation](../evaluation/2026-09-28-so-what-ux-evaluation.md))
+**Date:** 2026-09-28 (updated for spec rev. 7: today first, trend lines, sea level rise; §10 added from the [states and edge cases review](../resilience/2026-09-28-so-what-states-and-edge-cases.md); rev. 11: risk names, data years, "current data", start page and Unflagged switch labels, from the [UX evaluation](../evaluation/2026-09-28-so-what-ux-evaluation.md))
 **Status:** Draft. Wildfire trend and sea-level-rise wording are provisional until M1 confirms the data.
 **Related:** [design spec](../superpowers/specs/2026-09-27-so-what-design.md) §1 (today first, then the trend), §5.5 (text), §7.4 (card and panel order), §15 (limitations) · [grader's first 30 seconds](../journeys/2026-09-28-grader-first-30-seconds.md)
 
@@ -276,8 +276,10 @@ Specified in spec §7.4: fixed data in `web/lib/tips.ts`, keyed by risk type, sh
 | Start page `<h1>` | So What? |
 | Start page intro, under the `<h1>` | What climate risks mean at LA County bus stops, parks, playgrounds and schools. |
 | Hint under "Use my location" | Only used to find places near you. |
-| Filter group legend | Show |
-| Filter labels | Air pollution · Heat · Wildfire · Sea level rise (projected) · Unflagged |
+| Filter group legend | Show risks |
+| Filter labels | Air pollution · Heat · Wildfire · Sea level rise *(no "(projected)": it has to fit one line of the phone grid, and the legend, pin and card heading all say "Projected")* |
+| Unflagged switch, on places-list heading rows | Unflagged |
+| Unflagged switch, in the map's Legend panel | Show unflagged places |
 | Header | So What? (links to the start page) · Zip code field on place and About pages, from medium width up |
 | Share button (falls back to copying the link) | Share · after copying: "Link copied" |
 | List, more places | Show 20 more |
@@ -314,11 +316,11 @@ Every state in the [states and edge cases review](../resilience/2026-09-28-so-wh
 **Rules for these messages** (the five principles, applied):
 - Say what happened, then what the person can do. Every message has a way forward: a retry, another entry action, or a filter to turn on.
 - Never blame the person ("Invalid zip"). Never promise a time ("in a few minutes") we can't keep.
-- "Flagged" means `elevated` or above in current data, or a sea-level-rise flag. It's the word the panel and the "Unflagged" filter already use, so it's safe to reuse. "Not flagged" never becomes "safe" or "low-risk" (§2).
+- "Flagged" means `elevated` or above in current data, or a sea-level-rise flag. It's the word the panel and the "Unflagged" switch already use, so it's safe to reuse. "Not flagged" never becomes "safe" or "low-risk" (§2).
 - No "Oops", "Uh oh" or "Something went wrong." Name the thing that isn't working.
 - Loading is shown, never announced. Results and errors are announced once, in the polite live region.
 - `{n}` uses the plural helper ("1 place", "2 places"). `{types}` joins the in-sentence risk names (§8) with commas and "and" ("heat, air pollution and wildfire"), reads "all risk types" when all four risks are on, and ends "and unflagged places" when Unflagged is on ("all risk types and unflagged places").
-- **Unflagged places are never hidden silently.** When the Unflagged filter is off, the list says so under its heading (below), and the "nothing flagged near an entry point" messages, which are announced, end with *Unflagged places are hidden. Turn on "Unflagged" to see them.* Otherwise someone looking for their own stop can't tell it's hidden rather than missing.
+- **Unflagged places are never hidden silently.** When the Unflagged switch is off, the line under the list heading says "flagged" (below), and the "nothing flagged near an entry point" messages, which are announced, end with *Unflagged places are hidden. Turn on "Unflagged" to see them.* Otherwise someone looking for their own stop can't tell it's hidden rather than missing.
 
 ### Entry: location
 
@@ -361,8 +363,7 @@ Shown in the list's note area and announced; the map then moves to the nearest f
 
 | State | Text |
 |---|---|
-| Line under the heading (what distances are measured from) | Distances from your location. · Distances from {zip}. · Distances from the center of the map. · Distances from {place}. |
-| Line under the heading, Unflagged off | Showing flagged places only. *(with a link-styled button: "Show unflagged too", which turns on the filter)* |
+| Line under the heading: the count and what distances are measured from | {n} flagged places near your location. · … near {zip}. · … near the center of the map. · … near {place}. Drop "flagged" when Unflagged is on ("20 places near 90012"). |
 | Nothing flagged in view | No flagged places in view. These are the nearest. *(unchanged)* |
 | Nothing flagged in view, only sea level rise selected | No projected coastal flooding in view. These are the nearest places near the coast. |
 | Map outside LA County | This part of the map is outside LA County. These are the nearest LA County places. |
