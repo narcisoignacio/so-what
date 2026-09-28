@@ -192,7 +192,7 @@ Shared first sentence: *By mid-century, with about {rise} of sea level rise, {co
 |---|---|---|
 | bus_stop | Service here may be moved or cut on those days. | 28 |
 | park | The park may close on those days. | 25 |
-| playground | Floodwater leaves debris behind, so it may close until cleaned. | 28 |
+| playground | Floodwater can leave contamination behind, so it may close until cleaned. | 29 |
 | school | Flooding could close the school or block students' routes to it. | 29 |
 
 - "This stop," not "this area": the flood extents are detailed polygons, and point-in-polygon places the point exactly.
@@ -273,6 +273,21 @@ Specified in spec §7.4: fixed data in `web/lib/tips.ts`, keyed by risk type, sh
 
 - **M1 decides:** the extreme-heat-day definition; whether fire gets a trend line and what its metric is; the sea-level-rise amount, CoSMoS layer, and whether `{condition}` is tides or a storm.
 - **Consequence claims need citations too.** The spec cites the *data* on each card, but not claims like "children are more sensitive to heat" or "heat makes it harder for students to learn." Proposal: the About page lists one public-health reference per claim (for example EPA for fine particles, CDC for heat illness, and published research on heat and learning), stored in `sources`. Each claim should be checked before M6. If one can't be supported, cut it. The same applies to the sea-level-rise consequences ("service may be moved", "may close").
+  - **Verified 2026-09-28** (each page checked against the claim it supports):
+
+    | Claim | Used in | Citation |
+    |---|---|---|
+    | Children breathe more air relative to body weight than adults, and their lungs are still developing | air / playground | **Primary:** U.S. EPA / AirNow, *Air Quality Guide for Particle Pollution*, EPA-452/F-23-002 (Feb 2023): children and teenagers are at greater risk "because their lungs are still developing, and they breathe more air per pound of body weight than adults." **Supporting:** Brumberg HL, Karr CJ, et al.; AAP Council on Environmental Health. "Ambient Air Pollution: Health Hazards to Children." *Pediatrics* 2021;147(6):e2021051484. doi:10.1542/peds.2021-051484. Its wording is confirmed only through AAP's HealthyChildren.org summary; the journal page couldn't be fetched. |
+    | Fine-particle pollution harms health over months to years, not just on bad days | air / bus_stop ("adds up over years") | U.S. EPA, *Integrated Science Assessment for Particulate Matter* (2019) and its 2022 supplement. EPA's plain-language summary ("Clinical Outcomes Related to Particulate Matter Exposure and Cardiovascular Disease"): breathing PM2.5 "over many years can lead to a range of cardiovascular effects… including atherosclerotic plaque progression and death." |
+    | People with asthma are at greater risk from particle pollution; lighter and shorter activity reduces exposure | air / park | U.S. EPA / AirNow, *Air Quality Guide for Particle Pollution*, EPA-452/F-23-002 (Feb 2023). It lists people with lung disease, including asthma, as at greater risk and advises "Choose a less intense activity" and "Shorten your outdoor activities." "Exercising… breathe in more of it" is an inference from that advice, not a sentence the guide states. |
+    | Heat reduces students' learning | heat / school | Park RJ, Goodman J, Hurwitz M, Smith J. "Heat and Learning." *American Economic Journal: Economic Policy* 2020;12(2):306–39. doi:10.1257/pol.20180612. Checked against the abstract only. |
+    | Wildfire smoke's fine particles are its main health threat; limit time outdoors when smoke is present | fire / bus_stop | U.S. EPA, "Wildfire Smoke and Health" (last updated 2026-07-23). If you cite *Wildfire Smoke: A Guide for Public Health Officials* instead, use its current edition, not the 2019 revision. |
+    | Fire hazard zones are mapped from vegetation (fuels), terrain and weather; fire burns faster up steep slopes; the maps show hazard, not risk | fire / park, playground, school; word list ("fire hazard zone") | CAL FIRE Office of the State Fire Marshal, "Fire Hazard Severity Zones" page. The OSFM page blocked automated fetching, so confirm the wording in a browser. The same statements appear in CAL FIRE's 2007 FHSZ fact sheet, which is too old to cite. |
+    | Older adults and young children are at high risk for heat-related illness | heat / bus_stop ("older riders"), heat / playground | CDC, "Protect Yourself From the Dangers of Extreme Heat" (Climate and Health; last reviewed 2024-06-25). Not CDC's "Infants and Children and Heat" page, which doesn't make the sensitivity claim. |
+    | Playground equipment and surfacing, including plastics and rubbers, can get hot enough to burn a child's skin | heat / playground | U.S. Consumer Product Safety Commission, Fact Sheet Publication 3200 (2012), "Burn Safety Awareness on Playgrounds: Thermal Burns from Playground Equipment". |
+    | Floodwater can reach playgrounds and leave microbial contamination; sand, mulch and wood chips may need replacing; reopening is decided case by case | sea / playground | CDC, "Reopening Outdoor Public Spaces After Flooding" (Environmental Health Response and Recovery). |
+
+  - Note: the sources say "young children" (CDC) and children 2 and under are most at risk of burns (CPSC). The heat/playground template says "children", which is broader. Adding "young" would take it to 31 words, so trim elsewhere if you want the narrower claim.
 - **Showcase entries** (`showcase.yaml`) are hand-written by you and follow these same principles and word caps. They are where the writing becomes most specific, so they should be in your own words.
 - **Academic honesty:** these templates were drafted with AI assistance. Cite that in a comment in `pipeline/templates.py` and in the README (spec §13).
 - **Test with 3–5 people:** show a card and ask what it means for someone who uses that place. Watch for:
