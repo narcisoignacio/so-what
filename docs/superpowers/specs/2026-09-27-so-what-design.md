@@ -1,0 +1,466 @@
+# So What? — Design Spec
+
+**Date:** 2026-09-27 (rev. 4: Drizzle on @tursodatabase/serverless)
+**Status:** Draft, awaiting review
+**Context:** CS50x final project (due before 2027-06-30 4:59 PM PDT), also deployed publicly on a custom domain, on free tiers.
+
+---
+
+## 1. Intent
+
+**Problem.** Climate data is too abstract for the average person. County-level projections and percentile scores don't answer "what does this mean for the bus stop I wait at?"
+
+**Solution.** An interactive map of Los Angeles County that pins specific, everyday places — bus stops, parks, playgrounds, schools — and, for each, states the specific climate risk and its **"So What?"**: the concrete, human consequence.
+
+**Audience.** Primary: CS50 graders and demo-video viewers (most of whom are *not* in LA). Secondary: LA residents who find the public site.
+
+**Success looks like:**
+- A grader outside LA can open the site and understand a real LA place's risks within ~30 seconds.
+- Every claim on a card traces to a cited public data source.
+- A place's URL can be shared and renders a meaningful preview.
+- The README (≥ ~750 words) can explain every file and design decision clearly.
+- Hosting stays on free tiers with no user-visible cold start.
+
+**Author background.** Web developer (Next.js-experienced, bootcamp-trained) taking CS50x to fill CS fundamentals. The CS-heavy work — the ETL pipeline, point-in-polygon, a hand-written spatial grid index, and nearest-neighbor search — is therefore the heart of the project, not the web framework.
+
+## 2. Scope
+
+**In scope (MVP):**
+- LA County only.
+- Three risk types: **air quality, wildfire, extreme heat.**
+- Place kinds: `bus_stop`, `park`, `playground`, `school`.
+- Entry points: browser Geolocation, zip-code search, featured starting spot.
+- Shareable, server-rendered place pages with Open Graph previews.
+- Risk-type filters persisted in the URL.
+- About page documenting method, thresholds, sources, and limitations.
+
+**Out of scope (YAGNI):**
+- User accounts, saved places, comments, or any user-written data.
+- Areas outside LA County.
+- Flooding (no reliable public "pooling intersections" dataset).
+- LLM-generated text.
+- Zip-code choropleth / area-shading views.
+- Live or real-time data (refreshed by manually re-running the pipeline).
+
+## 3. Architecture overview
+
+```
+ public data sources ──► pipeline/ (Python ETL, run manually)
+                              │  fetch → normalize → join → grid → score → render → write → validate
+                              ▼
+                      data/sowhat-YYYYMMDD.db  (local SQLite build artifact)
+                              │  upload (turso CLI)
+                              ▼
+                      Turso Cloud database (free tier, read-only token for the app)
+                              ▲
+                              │  Drizzle ORM + @tursodatabase/serverless
+                      web/ (Next.js App Router on Vercel Hobby) ◄── custom domain (HTTPS)
+```
+
+Two halves with one contract between them: **`pipeline/schema.sql`** (§5.3). The pipeline creates and fills the database; the app only reads it.
+
+## 4. Repository layout
+
+The project root is `final-project/` (submitted via `submit50`; `README.md` must live here).
+
+```
+final-project/
+  README.md                  CS50 README: what, why, every file, design decisions, AI-use citation
+  docs/superpowers/specs/    this spec (and later, the implementation plan)
+  pipeline/                  Python ETL
+    schema.sql               single source of truth for the database schema
+    fetch.py                 download raw sources → data/raw/
+    normalize.py             clip to LA County, select fields, reproject to WGS84 lat/lon (pyproj)
+    geometry.py              hand-written point-in-polygon (ray casting; holes; multipolygons) + bbox prefilter
+    grid.py                  grid-cell assignment (§6.1); CELL_SIZE_DEG constant
+    join.py                  assign tract_id, fire zone, zip to every place
+    score.py                 raw values → levels, using thresholds.py
+    thresholds.py            every cutoff in one place, each with a rationale comment
+    templates.py             So What? sentence templates keyed by (risk type, place kind, level)
+    render.py                fill templates; apply showcase overrides
+    showcase.yaml            ~15–20 hand-written, cited showcase entries
+    build.py                 orchestrates the steps; writes data/sowhat-YYYYMMDD.db; runs validate
+    validate.py              integrity checks; non-zero exit on failure
+    publish.sh               uploads a validated build to Turso (§8.2)
+    tests/                   pytest
+    requirements.txt
+  data/
+    raw/                     downloaded source files (gitignored)
+    sowhat-*.db              builds (gitignored; reproducible)
+    published_slugs.txt      every slug ever published (committed; protects share links)
+  web/                       Next.js app (§7)
+    drizzle.config.ts
+    lib/db/schema.ts         generated by `drizzle-kit pull` — never hand-edited
+    …
+```
+
+## 5. Data
+
+### 5.1 Sources
+
+Each source must be confirmed during the data milestone (§12, M1): availability, license, format, projection, and vintage.
+
+| Purpose | Candidate source | Grain | Notes |
+|---|---|---|---|
+| Air quality | CalEnviroScreen 4.0 (OEHHA) — PM2.5 and Diesel PM percentiles | Census tract (**2010 vintage**) | Tract shapes must be the matching 2010 TIGER tracts, not 2020. |
+| Wildfire | CAL FIRE Fire Hazard Severity Zones (SRA + LRA) | Polygons | Published in California Albers (EPSG:3310) — reproject. Use the most recent adopted maps. |
+| Extreme heat | CalEPA Urban Heat Island Index; fallback: Cal-Adapt extreme-heat-day projections | Census tract / grid | Chosen in M1. The chosen source determines the heat-card wording. |
+| Tract shapes | US Census TIGER/Line 2010 tracts, California | Polygons | Must match CalEnviroScreen vintage. |
+| Zip codes | US Census 2020 ZCTAs | Polygons | ZCTAs approximate USPS zips; documented on the About page. |
+| Bus stops | LA Metro GTFS (`stops.txt`) | Points | Stable `stop_id`. |
+| Parks | LA County parks / open space GIS layer | Polygons → representative point | Use the dataset's own ID for the stable key. |
+| Schools | California Department of Education public schools directory | Points | CDS code as the stable key. |
+| Playgrounds | OpenStreetMap `leisure=playground` (Overpass export) | Points/polygons → point | ODbL: attribution required on About page and map. |
+
+### 5.2 Stable identity
+
+Shared URLs must survive re-imports. Every place's identity derives from its source, never from auto-increment:
+
+- `source_key` = `"<source>:<source_id>"`, e.g. `metro_stop:3104`, `cde_school:19647336012345`.
+- `slug` = `<kind>-<source_id>-<slugified-name>`, e.g. `bus-stop-3104-vermont-sunset`. Deterministic from `source_key` and name.
+- `data/published_slugs.txt` accumulates every slug ever published. `validate.py` **fails if any listed slug is missing** from the new build. Intentional removal = explicit edit to that file.
+
+### 5.3 Schema (`pipeline/schema.sql`)
+
+```sql
+CREATE TABLE places (
+  id          INTEGER PRIMARY KEY,          -- internal only
+  slug        TEXT NOT NULL UNIQUE,         -- public, stable
+  source_key  TEXT NOT NULL UNIQUE,
+  name        TEXT NOT NULL,
+  kind        TEXT NOT NULL CHECK (kind IN ('bus_stop','park','playground','school')),
+  lat         REAL NOT NULL,
+  lon         REAL NOT NULL,
+  zip         TEXT,
+  tract_id    TEXT NOT NULL,
+  cell_row    INTEGER NOT NULL,             -- floor(lat / CELL_SIZE_DEG)
+  cell_col    INTEGER NOT NULL,             -- floor(lon / CELL_SIZE_DEG)
+  air_rank    INTEGER NOT NULL CHECK (air_rank  BETWEEN 0 AND 3),  -- denormalized from risks.level
+  fire_rank   INTEGER NOT NULL CHECK (fire_rank BETWEEN 0 AND 3),
+  heat_rank   INTEGER NOT NULL CHECK (heat_rank BETWEEN 0 AND 3),
+  is_showcase INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX places_cell ON places (cell_row, cell_col);
+
+CREATE TABLE risks (
+  place_id  INTEGER NOT NULL REFERENCES places(id),
+  type      TEXT NOT NULL CHECK (type IN ('air','fire','heat')),
+  level     TEXT NOT NULL CHECK (level IN ('low','elevated','high','severe')),
+  value     REAL,                            -- raw metric (percentile, class code, etc.)
+  detail    TEXT NOT NULL,                   -- the specific risk
+  so_what   TEXT NOT NULL,                   -- the human consequence
+  source_id TEXT NOT NULL REFERENCES sources(id),
+  PRIMARY KEY (place_id, type)
+);
+
+CREATE TABLE sources (
+  id           TEXT PRIMARY KEY,             -- e.g. 'calenviroscreen_4_0'
+  name         TEXT NOT NULL,
+  url          TEXT NOT NULL,
+  retrieved_on TEXT NOT NULL                 -- ISO date
+);
+
+CREATE TABLE zips (
+  zip TEXT PRIMARY KEY,
+  min_lat REAL NOT NULL, max_lat REAL NOT NULL, min_lon REAL NOT NULL, max_lon REAL NOT NULL,
+  center_lat REAL NOT NULL, center_lon REAL NOT NULL
+);
+
+CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+-- keys: build_date, cell_size_deg, schema_version, row_count_places, source versions
+```
+
+**Level ranks:** `low = 0`, `elevated = 1`, `high = 2`, `severe = 3`.
+
+**Deliberate denormalization.** `air_rank`/`fire_rank`/`heat_rank` duplicate `risks.level` so that map queries (viewport, nearest, cluster) touch a single table with no join. For the active filter set, a place's pin level is SQLite's multi-argument `max(...)` over the selected rank columns; a place is **visible iff that value ≥ 1**. `validate.py` checks the ranks agree with `risks`.
+
+### 5.4 Scoring (initial thresholds)
+
+All cutoffs live in `thresholds.py` with a rationale comment and are reproduced on the About page.
+
+| Risk | Metric | elevated | high | severe |
+|---|---|---|---|---|
+| Air | max(PM2.5 pctl, Diesel PM pctl), CalEnviroScreen statewide percentile | ≥ 75 | ≥ 90 | ≥ 97 |
+| Fire | CAL FIRE FHSZ class containing the place | Moderate | High | Very High |
+| Heat | Heat metric percentile **within LA County** tracts | ≥ 75 | ≥ 90 | ≥ 97 |
+
+Anything below `elevated` is `low`. Thresholds may be tuned during M1 after inspecting real distributions; changes are recorded in `thresholds.py` and the About page.
+
+### 5.5 "So What?" text
+
+- **Templates** (`templates.py`) keyed by `(type, kind, level)`, interpolating place-specific values. Example — `(heat, bus_stop, high)`: *"Riders here wait in one of the hottest 10% of neighborhoods in LA County. Without a shelter or shade, midday summer waits can be a health risk, especially for older riders."*
+- Every `(type, kind, level ≥ elevated)` combination must have a template; `validate.py` enforces this. `low` rows get a short neutral sentence.
+- **Showcase overrides** (`showcase.yaml`): ~15–20 places with hand-written `detail` and `so_what` plus a citation URL per entry. At least one showcase place is the **featured starting spot**, chosen to exhibit all three risks.
+
+### 5.6 Pipeline steps
+
+1. **fetch** — download sources to `data/raw/`; record `retrieved_on`.
+2. **normalize** — reproject to WGS84; clip to LA County boundary; polygons → representative points for parks/playgrounds; drop unused fields.
+3. **join** — for each place, find its tract, fire zone, and ZCTA using `geometry.py`: bbox prefilter over candidate polygons, then ray-casting point-in-polygon honoring holes and multipolygons. Places outside every tract are dropped and counted.
+4. **grid** — assign `cell_row`, `cell_col` (§6.1).
+5. **score** — levels and ranks per §5.4.
+6. **render** — templates, then showcase overrides.
+7. **write** — create a fresh `data/sowhat-YYYYMMDD.db` from `schema.sql` (never mutate a previous build), insert rows, write `meta`, `VACUUM`, then `PRAGMA journal_mode=WAL` (required by `turso db import`).
+8. **validate** — §10.2. On failure, exit non-zero; nothing is published.
+
+Publishing (upload to Turso) is a separate, explicit step (§8.2).
+
+## 6. Spatial indexing and queries
+
+### 6.1 Grid index
+
+The map is divided into fixed square-in-degrees cells of `CELL_SIZE_DEG = 0.01` (≈ 1.11 km north–south; ≈ 0.91–0.93 km east–west across LA County's latitudes).
+
+```
+cell_row = floor(lat / CELL_SIZE_DEG)
+cell_col = floor(lon / CELL_SIZE_DEG)
+```
+
+- `floor` (not truncation) is required: all LA longitudes are negative, and truncation toward zero would merge two columns of cells at every boundary.
+- The constant is defined in `pipeline/grid.py` and `web/lib/geo.ts`, and written to `meta.cell_size_deg`. A web test asserts the TS constant equals the value in `meta`.
+- `S_MIN` = the shortest cell side in metres anywhere in the county (east–west side at the county's northern edge), multiplied by a 0.99 safety factor to absorb haversine-vs-planar error. Used by the nearest-search stopping rule.
+
+### 6.2 Viewport query
+
+Convert the visible bounds to a cell range, then filter exactly (edge cells overhang the viewport):
+
+```
+WHERE cell_row BETWEEN :r_south AND :r_north
+  AND cell_col BETWEEN :c_west  AND :c_east
+  AND lat BETWEEN :south AND :north
+  AND lon BETWEEN :west  AND :east
+  AND max(<selected rank columns>) >= 1
+LIMIT 1000
+```
+
+Returns `PinSummary[]` with `level` = the computed max rank.
+
+### 6.3 Zoomed-out clusters (server-side aggregation)
+
+Below a zoom threshold (initially zoom < 13), the API returns counts per coarse cell instead of pins:
+
+```
+GROUP BY cell_row / :f, cell_col / :f      -- integer division; :f chosen by zoom (table in geo.ts)
+SELECT count(*), max(level), avg(lat), avg(lon)
+```
+
+Integer division on negative `cell_col` rounds toward zero in SQLite, which would make the coarse cell straddling each multiple of `:f` twice as wide. Grouping therefore uses `(cell_col + COL_OFFSET) / :f`, where `COL_OFFSET = 36000` (a multiple of every zoom factor, and large enough that all columns become non-negative since `lon ≥ −180`). Rows are always positive in LA and need no offset. This is tested explicitly.
+
+Client-side marker clustering is then only needed for dense zoomed-in views.
+
+### 6.4 Nearest place (grid ring search)
+
+Let the query point be in cell `(r0, c0)`. Define the *box of radius k* as all cells with `|row − r0| ≤ k` and `|col − c0| ≤ k`.
+
+**Lower bound.** Any point outside the box of radius k lies at least `k` full cells away along rows or columns, so its distance is ≥ `k · S_MIN`.
+
+**Algorithm (few round trips to Turso):**
+1. `k = 1`.
+2. Query the box of radius k (same visibility filter as §6.2); compute haversine distance to each candidate; `best` = the minimum (or none).
+3. If `best` exists and `best ≤ k · S_MIN` → return it (proved nearest: everything unseen is at least `k · S_MIN` away).
+4. Otherwise, `k = best ? ceil(best / S_MIN) : 2k`, capped at a county-sized `K_MAX`; repeat from 2.
+5. If `k` exceeds `K_MAX` with no result → return `null`.
+
+Typically 1–2 queries. Return shape: `{ slug, name, kind, lat, lon, distanceM }` or `null`.
+
+## 7. Web application (Next.js App Router)
+
+### 7.1 Structure
+
+```
+web/
+  drizzle.config.ts          dialect: 'turso'; used for `drizzle-kit pull` only (no migrations)
+  app/
+    layout.tsx               shell: header, risk filters, <MapView/> (persists across navigation)
+    page.tsx                 start panel: "Use my location" · zip search · "Show me an example"
+    places/[slug]/
+      page.tsx               server-rendered detail panel; generateMetadata for OG/Twitter tags
+      opengraph-image.tsx    generated share image (place name, kind, top risk)
+      not-found.tsx
+    about/page.tsx           method, thresholds, sources, attribution, limitations
+    api/
+      places/route.ts        GET ?bbox=west,south,east,north&zoom=&types=air,fire,heat
+                             → { mode: 'pins', pins } | { mode: 'clusters', clusters }
+      places/nearest/route.ts GET ?lat=&lon=&types=
+      zips/[zip]/route.ts    GET → bounds + center, or 404
+      health/route.ts        GET → { ok, places } via a 1-row meta lookup (uptime monitoring)
+  lib/
+    db/
+      schema.ts              generated by drizzle-kit pull; never hand-edited
+      client.ts              drizzle-orm/tursodatabase-serverless + @tursodatabase/serverless (TURSO_DATABASE_URL,
+                           read-only TURSO_AUTH_TOKEN); the only file that knows the driver
+      queries.ts             every query the app runs; each takes a Drizzle `db` argument; returns DTOs from types.ts
+    geo.ts                   CELL_SIZE_DEG, S_MIN, cell math, haversine, bbox parsing, zoom→factor table
+    types.ts                 PinSummary, Cluster, PlaceDetail, Risk, Source (API/UI shapes)
+  components/
+    MapView.tsx              Leaflet (client-only), pins + clusters, syncs with URL
+    PlacePanel.tsx, RiskCard.tsx, ZipSearch.tsx, LocateButton.tsx, NearestButton.tsx, RiskFilters.tsx
+  tests/
+    fixtures/build-fixture.ts  builds a small local SQLite file from ../pipeline/schema.sql + seed rows
+```
+
+### 7.2 Drizzle usage
+
+- **Driver:** `drizzle-orm/tursodatabase-serverless` over `@tursodatabase/serverless` (fetch-only; works in Vercel Functions). `drizzle-orm` and `drizzle-kit` are on the release-candidate channel, pinned to exact versions; move to stable 1.0 when released. Fallback: `drizzle-orm/libsql` + `@libsql/client`, changing only `lib/db/client.ts`.
+- **Schema ownership:** `pipeline/schema.sql` is authoritative. After a schema change: rebuild the db, run `drizzle-kit pull` against it, commit the regenerated `schema.ts`. No Drizzle migrations exist.
+- **Queries** use the query builder (`and`, `between`, `eq`, `inArray`) and the `sql` template where Drizzle lacks a helper (multi-arg `max(...)` over rank columns, floor-division grouping).
+- **Row types** come from `InferSelectModel`; `queries.ts` maps rows to the DTOs in `types.ts` so the UI never depends on column names.
+- **Drift guard:** a Vitest test builds the fixture db from `schema.sql` and compares `PRAGMA table_info` for each table against Drizzle's `getTableConfig` column names and types.
+
+### 7.3 Core types
+
+```ts
+type RiskType = 'air' | 'fire' | 'heat';
+type Level = 'low' | 'elevated' | 'high' | 'severe';
+type PlaceKind = 'bus_stop' | 'park' | 'playground' | 'school';
+
+interface PinSummary { slug: string; name: string; kind: PlaceKind; lat: number; lon: number; level: Level }
+interface Cluster    { lat: number; lon: number; count: number; level: Level }
+
+interface PlaceDetail {
+  slug: string; name: string; kind: PlaceKind; lat: number; lon: number; zip: string | null;
+  risks: { type: RiskType; level: Level; detail: string; soWhat: string; source: Source }[];
+}
+```
+
+### 7.4 Behavior
+
+- **Selecting a place:** clicking a pin navigates to `/places/[slug]`; the layout's map persists and the panel swaps. Direct loads of a share URL server-render the panel; the map centers on the place on hydration.
+- **Filters:** `?types=air,heat` in the URL; applied to pins, clusters, nearest search; preserved in share links. Default: all three.
+- **Entry flow:**
+  1. Start panel offers **Use my location**, **zip search**, and **Show me an example**.
+  2. Geolocation inside LA County → center there. Outside LA County, denied, or timed out → "So What? covers LA County — here's a place to start" → fly to the featured starting spot.
+  3. Zip search → `/api/zips/[zip]` → fit bounds; non-LA zip → inline message.
+- **Empty-viewport check:**
+  - After an entry action (geolocation or zip) yields zero visible pins → nearest search → "No elevated risks right around you — nearest is *X*, 1.4 mi away" → fly there. The "relatively low-risk" message is stated explicitly.
+  - During manual panning → never auto-move; show a **Nearest place →** button instead.
+- **Map tiles:** free tier from a tile provider (MapTiler, Stadia, or Carto — chosen in M0); key in an env var, domain-restricted; required attributions displayed.
+
+## 8. Deployment
+
+### 8.1 Hosting
+
+- **App:** Vercel Hobby (non-commercial use), project root directory `web/`, custom domain via Vercel.
+- **Database:** Turso free tier — 100 databases, 5 GB storage, 500M rows read/month; queries fail with `BLOCKED` once a quota is exceeded. Databases are files, not processes: they never sleep and have no cold start. Vercel Functions region set to match the database's region (e.g. `pdx1` ↔ `aws-us-west-2`).
+- **Rows read is the budget that matters.** Turso counts rows *scanned*, not rows returned, so an unindexed viewport query over ~15k places would cost ~15k reads per map pan. The grid index (§6) keeps zoomed-in pans to a few hundred reads — the data structure directly protects the free quota. Zoomed-out cluster queries (§6.3) still scan every place in view (up to ~15k at county zoom, i.e. ~33k such views/month on the free quota — ample for demo traffic). If M3 measurements show otherwise, the pipeline precomputes a `cluster_summaries` table per zoom factor. `/api/health` uses `SELECT value FROM meta WHERE key = 'row_count_places'` (1 row read), not `count(*)`.
+- **Env vars:** `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` (read-only token), `NEXT_PUBLIC_TILE_KEY`.
+- **Monitoring (optional):** UptimeRobot on `/api/health` for alerts (not keep-alive).
+
+### 8.2 Publishing a data build
+
+Blue/green, so a bad upload never affects the live site:
+1. `build.py` produces and validates `data/sowhat-YYYYMMDD.db` (WAL mode).
+2. `publish.sh` runs `turso db import data/sowhat-YYYYMMDD.db` (creates a new database named after the file), mints a read-only token (`turso db tokens create <db> --read-only`), and runs a smoke query.
+3. Update `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` in Vercel; redeploy (env changes apply only to new deployments).
+4. After verifying production, append new slugs to `data/published_slugs.txt`, commit, and — with explicit confirmation — delete the previous database.
+
+The free plan allows 100 databases, so blue/green costs nothing extra.
+
+### 8.3 M0 deployment spike (retire platform risk first)
+
+Before any feature work: a hello-world Next.js app on Vercel with the custom domain, reading a tiny Turso database (created via `turso db import`) through Drizzle (a `places` table with the cell index), plus `/api/health`. Verify: `drizzle-orm@rc` + `@tursodatabase/serverless` works against Turso Cloud (including the `sql` template and multi-arg `max`); `drizzle-kit@rc pull` introspects the imported db; the same queries run in Vitest over a local driver (§11); viewport-query latency with Functions and database in the same region. Tile provider chosen.
+
+## 9. Security
+
+- The app's Turso token is read-only; no route accepts writes.
+- All query parameters are parsed and range-checked in `geo.ts` before reaching `queries.ts`; all SQL goes through Drizzle's parameterized builder / `sql` template (no string concatenation).
+- Tile key restricted to the production domain and localhost.
+
+## 10. Error handling and validation
+
+### 10.1 Runtime
+
+| Situation | Behavior |
+|---|---|
+| Malformed `bbox` / `zoom` / `types` / non-numeric params | 400 with a JSON error message |
+| `bbox` inverted or larger than LA County | 400 |
+| Zip not in `zips` table | 404 → "That zip isn't in LA County (yet)." |
+| Unknown slug | `notFound()` → friendly page linking back to the map |
+| Geolocation denied / timeout / outside county | Fallback flow (§7.4) |
+| Nearest search finds nothing within `K_MAX` | Message; no map movement |
+| Tile provider failure | Basemap blank; pins, panels, share links still work |
+| Turso unreachable, auth failure, or quota exceeded | API routes return 503; place pages render an error state; `/api/health` reports `ok: false` |
+
+### 10.2 Pipeline (`validate.py`)
+
+Fails the build (non-zero exit; nothing published) if any of:
+- a place lacks `tract_id`, `cell_row`, or `cell_col`, or its cell doesn't match `floor(lat|lon / CELL_SIZE_DEG)`;
+- a place lacks a `risks` row for any of the three types, or its rank columns disagree with `risks.level`;
+- a `risks` row references a missing source;
+- duplicate slugs or source keys;
+- a `showcase.yaml` entry references a nonexistent `source_key` or lacks a citation;
+- a required template `(type, kind, level ≥ elevated)` is missing;
+- row counts fall outside expected ranges (configured in `validate.py`);
+- any slug in `data/published_slugs.txt` is missing (§5.2).
+
+## 11. Testing
+
+**Pipeline (pytest) — primary focus:**
+- `geometry.py`: inside/outside convex and concave polygons; point exactly on an edge and on a vertex (documented, deterministic rule); polygon with a hole; multipolygon; bbox prefilter never excludes a true hit.
+- `grid.py`: points exactly on cell boundaries; negative longitudes (`floor`, not truncation).
+- `score.py`: values exactly at, just below, and just above each threshold.
+- `render.py`: every template renders with sample values; showcase overrides win.
+- Slug generation is deterministic and stable across runs.
+- `validate.py`: each failure condition triggers on a crafted bad input.
+
+**Web (Vitest), against a local fixture db (no network):**
+
+`@tursodatabase/serverless` is remote-only, so tests pass `queries.ts` a Drizzle instance over a *local* driver on the fixture file — `drizzle-orm/tursodatabase-database` (`@tursodatabase/database`, Turso's embedded engine) if available on the rc channel, else `drizzle-orm/libsql` with a `file:` URL. Chosen in M0. This works because every query takes `db` as an argument instead of importing the production client.
+- `geo.ts`: haversine vs. known distances; bbox parsing/validation; cell math matching `grid.py` on shared test vectors; `CELL_SIZE_DEG` equals `meta.cell_size_deg`.
+- `queries.ts`:
+  - viewport query: edge cells overhanging the viewport are excluded; type filters; low-risk hiding.
+  - clusters: coarse grouping is correct across negative columns (floor division).
+  - nearest: the **trap case** — the first non-empty box contains a point, but the true nearest lies just outside that box — returns the true nearest; the empty-until-cap case returns `null`.
+- Schema drift guard (§7.2).
+
+**End-to-end (Playwright, small):**
+- A share URL renders the panel and correct OG tags.
+- Zip search for an LA zip fits the map; a non-LA zip shows the message.
+- Geolocation mocked outside LA triggers the fallback flow.
+
+## 12. Milestones and outcome tiers
+
+| Milestone | Deliverable |
+|---|---|
+| **M0 — Deployment spike** | §8.3. |
+| **M1 — Data spike** | Every source in §5.1 confirmed (license, format, projection, vintage); heat source chosen; thresholds sanity-checked against real distributions. |
+| **M2 — Pipeline** | Full ETL with tests; valid `data/sowhat-YYYYMMDD.db`; first publish to Turso. |
+| **M3 — Map + API** | Viewport pins, server-side clusters, filters, nearest search. |
+| **M4 — Place pages** | Server-rendered panels, OG metadata and images, not-found. |
+| **M5 — Entry flow** | Geolocation, zip search, featured start, empty-viewport behavior. |
+| **M6 — Content** | Showcase entries written and cited; About page. |
+| **M7 — Ship** | Production deploy, README (≥ 750 words), demo video, `submit50`. |
+
+**Outcome tiers (CS50's "good / better / best"):**
+- **Good:** map of LA County with pins for all four place kinds, three risk types, template text, shareable place pages, deployed.
+- **Better:** + geolocation/zip entry flow, empty-viewport nearest search, server-side clusters, showcase text, OG images.
+- **Best:** + polished About/method page, Playwright suite, thresholds refined by distribution analysis.
+
+## 13. Academic honesty and AI use
+
+- The essence of the work — especially `pipeline/geometry.py`, `pipeline/grid.py`, the spatial queries, and the nearest-neighbor search — is written by the author.
+- AI assistance is cited in code comments where used, per the CS50 final-project policy, and summarized in the README.
+- `submit50` limit is 100 MB: `data/raw/`, `data/sowhat-*.db`, `node_modules/`, and `.next/` are excluded.
+
+## 14. Alternatives considered (README material)
+
+| Alternative | Why not |
+|---|---|
+| Flask + SQLite | Author already builds web apps; the CS gap is in data/algorithms, which live in the pipeline regardless of framework. |
+| `better-sqlite3` on Vercel | Native module is incompatible with Vercel Serverless Functions. |
+| Docker on Fly.io / Render | Fly.io has no free tier; Render's free tier sleeps, and its 750 free hours/month per workspace are already used by another always-on project. |
+| SQLite R*Tree index | Turso Cloud's engine does not yet implement SQLite's virtual-table interface. |
+| Uber H3 hexagonal index | The library would do the data-structure work the project exists to practice; its advantages (uniform neighbors, global consistency) matter mostly at global scale; child cells don't nest exactly; two language bindings to keep in sync. |
+| PostGIS (Supabase/Neon) | Same objection — spatial work done by the database; plus a second query dialect. |
+| Fully static site | No backend routing or database, dropping two of the three CS50 pillars. |
+| LLM-generated "So What?" text | Hallucination risk, cost, and harder to defend; templates + hand-written showcase instead. |
+| Zip codes as the unit | Too coarse and reads like a report card; places are what make "So What?" land. |
+| `drizzle-orm/libsql` + `@libsql/client` (stable Drizzle) | Turso now calls the libSQL SDKs legacy; its recommended SDK is `@tursodatabase/serverless` (fetch-only, no native deps), supported via `drizzle-orm/tursodatabase-serverless`. That driver is currently in Drizzle's release candidate, so exact versions are pinned and the libsql driver remains the fallback — a change confined to `lib/db/client.ts`. |
+| Drizzle-owned schema with migrations | The pipeline rebuilds the db from scratch each time; migrations add nothing. `schema.sql` stays the single source of truth, and Drizzle introspects it. |
+
+## 15. Limitations (stated on the About page)
+
+- Risk levels are derived from area-level data (census tracts, hazard zones) applied to points; they describe the surrounding area, not site-specific measurements.
+- CalEnviroScreen uses 2010 tract boundaries; ZCTAs approximate USPS zip codes.
+- Data is a snapshot as of the build date in `meta`.
+- Not an official hazard assessment; links to authoritative sources for decisions.
