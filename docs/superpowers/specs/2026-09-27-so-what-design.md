@@ -1,6 +1,6 @@
 # So What? — Design Spec
 
-**Date:** 2026-09-27 (rev. 10, 2026-09-28: states and edge cases from the [resilience review](../../resilience/2026-09-28-so-what-states-and-edge-cases.md) — zero selected types and oversize bboxes handled, cluster fallback over 1,000 pins, selected marker, app-caused map moves don't refresh the list, first screen, county outline test, name normalization and disambiguation, prerendered showcase pages, loading/empty/error states (§7.6). Rev. 9: place panel decisions from the [wireframes](../../wireframes/wireframes-place-panel.html) — signal-meter level glyph, risk glyphs, at-a-glance row, low cards with a trend stay expanded, one places list per page, "About this data" on phones. Rev. 8: accessibility — "Places near here" list and N-nearest search, level in card headings, pin glyphs, focus/announcement/reflow rules, WCAG 2.2 AA target, English only; from the [accessibility review](../../accessibility/2026-09-28-so-what-accessibility-review.md). Rev. 7: sea level rise added as a projection-only risk; intermediate emissions scenario. Rev. 6: today's conditions as the core of each card, plus one projected-change line for risks climate change is making worse. Rev. 5: featured place chosen in M1, consequence-first risk cards, So What? length cap — from [grader's first 30 seconds](../../journeys/2026-09-28-grader-first-30-seconds.md))
+**Date:** 2026-09-27 (rev. 11, 2026-09-28: findings from the [UX evaluation](../../evaluation/2026-09-28-so-what-ux-evaluation.md) — an "Unflagged" filter so every place is reachable, start page `<h1>` and intro, data years on `detail` lines and "current data" instead of "today" in the UI, one set of risk names ("Air pollution"), phone map taps open the panel, header with home link and zip search, back link after a direct load, cluster clicks, legend placement, "Show 20 more", location privacy, share button, share images keep the scope. Rev. 10: states and edge cases from the [resilience review](../../resilience/2026-09-28-so-what-states-and-edge-cases.md) — zero selected types and oversize bboxes handled, cluster fallback over 1,000 pins, selected marker, app-caused map moves don't refresh the list, first screen, county outline test, name normalization and disambiguation, prerendered showcase pages, loading/empty/error states (§7.6). Rev. 9: place panel decisions from the [wireframes](../../wireframes/wireframes-place-panel.html) — signal-meter level glyph, risk glyphs, at-a-glance row, low cards with a trend stay expanded, one places list per page, "About this data" on phones. Rev. 8: accessibility — "Places near here" list and N-nearest search, level in card headings, pin glyphs, focus/announcement/reflow rules, WCAG 2.2 AA target, English only; from the [accessibility review](../../accessibility/2026-09-28-so-what-accessibility-review.md). Rev. 7: sea level rise added as a projection-only risk; intermediate emissions scenario. Rev. 6: today's conditions as the core of each card, plus one projected-change line for risks climate change is making worse. Rev. 5: featured place chosen in M1, consequence-first risk cards, So What? length cap — from [grader's first 30 seconds](../../journeys/2026-09-28-grader-first-30-seconds.md))
 **Status:** Draft, awaiting review
 **Context:** CS50x final project (due before 2027-06-30 4:59 PM PDT), also deployed publicly on a custom domain, on free tiers.
 
@@ -47,7 +47,7 @@
 - Entry points: browser Geolocation, zip-code search, featured starting spot.
 - A **"Places near here" list** alongside the map: the N nearest visible places as ordinary links, so every task works without the map (§6.4, §7.5).
 - Shareable, server-rendered place pages with Open Graph previews.
-- Risk-type filters persisted in the URL.
+- Risk-type filters, plus an **Unflagged** filter (off by default) that shows places with nothing flagged, persisted in the URL.
 - About page documenting method, thresholds, sources, and limitations.
 
 **Out of scope (YAGNI):**
@@ -201,7 +201,9 @@ CREATE TABLE sources (
   id           TEXT PRIMARY KEY,             -- e.g. 'calenviroscreen_4_0'
   name         TEXT NOT NULL,
   url          TEXT NOT NULL,
-  retrieved_on TEXT NOT NULL                 -- ISO date
+  retrieved_on TEXT NOT NULL,                -- ISO date
+  data_years   TEXT                          -- years the measurements describe, e.g. '2015–2017' or '2025'; shown on
+                                             -- `detail` lines (§5.5); NULL only for sources that aren't measurements (tips)
 );
 
 CREATE TABLE zips (
@@ -218,7 +220,9 @@ CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 
 **Level ranks:** `low = 0`, `elevated = 1`, `high = 2`, `severe = 3`.
 
-**Deliberate denormalization.** `air_rank`/`fire_rank`/`heat_rank` duplicate `risks.level` so that map queries (viewport, nearest, cluster) touch a single table with no join. For the active filter set, a place's pin level is SQLite's multi-argument `max(...)` over the selected rank columns (air, fire, heat). A place is **visible iff that value ≥ 1, or `sea` is selected and `sea_flag = 1`**. `validate.py` checks the ranks and `sea_flag` agree with `risks`.
+**Deliberate denormalization.** `air_rank`/`fire_rank`/`heat_rank` duplicate `risks.level` so that map queries (viewport, nearest, cluster) touch a single table with no join. For the active filter set, a place's pin level is SQLite's multi-argument `max(...)` over the selected rank columns (air, fire, heat). A place is **visible iff that value ≥ 1, or `sea` is selected and `sea_flag = 1`, or `unflagged` is selected and the place has nothing flagged at all** (`air_rank = 0 AND fire_rank = 0 AND heat_rank = 0 AND sea_flag = 0`). `validate.py` checks the ranks and `sea_flag` agree with `risks`.
+
+`unflagged` is a filter, not a risk type: it adds the places no risk filter could ever show, and never adds places hidden by a risk filter the user turned off. Those places get a neutral pin (§7.4). Off by default, so the default map stays about flagged places.
 
 `sea_flag` is a flag, not a rank: sea level rise has no level (§5.4), so it can make a place visible but never sets its pin level. A place visible only through `sea_flag` gets the distinct "projected" pin style (§7.4). Rows in `risks` with `type = 'sea'` exist only for flagged places; the other three types have a row for every place.
 
@@ -245,6 +249,7 @@ Voice, word list and full template drafts: [So What? voice and templates](../../
 - **Templates** (`templates.py`) keyed by `(type, kind, level)`, interpolating place-specific values. Example — `(heat, bus_stop, high)`: *"This neighborhood traps more heat from pavement and buildings than 94% of LA County neighborhoods. A long summer wait in direct sun can cause heat illness, especially for older riders."*
 - Every `(type, kind, level ≥ elevated)` combination must have a template; `validate.py` enforces this. `low` rows get a short neutral sentence that never calls a place safe.
 - **Length cap:** every rendered `so_what` is **≤ 30 words**, so it reads at a glance on the card and fits one caption line in the demo video, even at 2× speed. `validate.py` enforces this on rendered text (templates plus interpolated values, and showcase overrides).
+- **Data years:** every today `detail` line ends with its source's `data_years` ("…(statewide, 2015–2017 data)"; formats in the voice doc §8). "Today" in this spec means *the most recent data available for each risk*, and some of it is several years old. The UI says "current data", never "today", and the About page defines it.
 - **Wording scope:** `so_what` describes the *neighborhood* ("than 94% of LA County neighborhoods"), never the exact spot, because the data is tract- or zone-level (§15).
 - **Trend line** (`trend`): one sentence per risk type that has a projection, keyed by type only, not by kind or level. It states the direction and both values in plain units, and names the period. Example — heat: *"And it's getting hotter: this area is projected to go from about 6 to 20 extreme-heat days a year by mid-century."* (numbers illustrative)
   - Shown at **every** level, including `low`. A place that isn't flagged today can still be getting worse, and saying so is the climate story.
@@ -294,7 +299,7 @@ cell_col = floor(lon / CELL_SIZE_DEG)
 
 ### 6.2 Viewport query
 
-**Before querying:** a bbox that extends past LA County's bounds is **clipped** to them, not rejected (the map already limits how far out it can go, §7.4). If no risk types are selected, the route returns an empty result without querying: with nothing selected, both parts of the visibility clause below would be omitted and every place in view, including `low` ones, would come back.
+**Before querying:** a bbox that extends past LA County's bounds is **clipped** to them, not rejected (the map already limits how far out it can go, §7.4). If nothing is selected (no risk types and not `unflagged`), the route returns an empty result without querying: with nothing selected, every part of the visibility clause below would be omitted and every place in view, including `low` ones, would come back.
 
 Convert the visible bounds to a cell range, then filter exactly (edge cells overhang the viewport):
 
@@ -304,13 +309,15 @@ WHERE cell_row BETWEEN :r_south AND :r_north
   AND lat BETWEEN :south AND :north
   AND lon BETWEEN :west  AND :east
   AND ( max(<selected rank columns>) >= 1          -- omitted if no today type is selected
-        OR sea_flag = 1 )                           -- included only if 'sea' is selected
+        OR sea_flag = 1                             -- included only if 'sea' is selected
+        OR (air_rank = 0 AND fire_rank = 0          -- included only if 'unflagged' is selected
+            AND heat_rank = 0 AND sea_flag = 0) )
 LIMIT 1001
 ```
 
 **Overflow:** if 1,001 rows come back, the view holds more than 1,000 visible places, and the route answers in cluster mode (§6.3) for that view instead of silently dropping pins in whatever order SQLite returned them.
 
-Returns `PinSummary[]` with `level` = the computed max rank (0 = `low` when the place is visible only through `sea_flag`) and `sea` = `sea_flag = 1`. `queries.ts` builds the visibility clause from the selected types: with only `sea` selected it is just `sea_flag = 1`; with only one today type, `max()` gets a single argument, so the clause uses the column directly (SQLite's `max()` with one argument is the aggregate).
+Returns `PinSummary[]` with `level` = the computed max rank (0 = `low` when the place is visible only through `sea_flag` or `unflagged`), `sea` = `sea_flag = 1`, and `unflagged` = true when the place has nothing flagged at all. Row reads don't change with `unflagged`: the grid already scans every place in the cells; only the number of pins returned grows, and the overflow rule below covers dense views. `queries.ts` builds the visibility clause from the selected types: with only `sea` selected it is just `sea_flag = 1`; with only one today type, `max()` gets a single argument, so the clause uses the column directly (SQLite's `max()` with one argument is the aggregate).
 
 ### 6.3 Zoomed-out clusters (server-side aggregation)
 
@@ -342,7 +349,7 @@ Let the query point be in cell `(r0, c0)`. Define the *box of radius k* as all c
 4. Otherwise, `k = (at least N candidates) ? ceil(d_N / S_MIN) : 2k`, capped at a county-sized `K_MAX`; repeat from 2.
 5. If `k` exceeds `K_MAX` → return all candidates found, sorted (the box now covers the county, so the result is complete; it may hold fewer than `N`, or none).
 
-Typically 1–3 queries. `N` is capped at 50. With no risk types selected, it returns an empty array without querying (§6.2). Return shape: `NearbyPlace[]` (§7.3), sorted by distance; an empty array when nothing is visible.
+Typically 1–3 queries. `N` is capped at 100 (the list shows 20 and adds 20 at a time, §7.4). With nothing selected, it returns an empty array without querying (§6.2). Return shape: `NearbyPlace[]` (§7.3), sorted by distance; an empty array when nothing is visible.
 
 Because each place row carries its rank columns and `sea_flag`, the list needs no join to show each place's levels (§5.3).
 
@@ -354,7 +361,7 @@ Because each place row carries its rank columns and `sea_flag`, the list needs n
 web/
   drizzle.config.ts          dialect: 'turso'; used for `drizzle-kit pull` only (no migrations)
   app/
-    layout.tsx               shell: skip link, header, risk filters, <PlacesList/>, <MapView/>, live region
+    layout.tsx               shell: skip link, <Header/>, filters, <PlacesList/>, <MapView/>, live region
                              (map and list persist across navigation)
     page.tsx                 start panel: "Use my location" · zip search (a real GET form) · "Show me an example" (a real link)
     opengraph-image.png      site-level default share image (fallback for every page)
@@ -367,9 +374,10 @@ web/
       not-found.tsx
     about/page.tsx           method, thresholds, sources, tip links, attribution, limitations
     api/
-      places/route.ts        GET ?bbox=west,south,east,north&zoom=&types=air,fire,heat,sea
+      places/route.ts        GET ?bbox=west,south,east,north&zoom=&types=air,fire,heat,sea,unflagged
                              → { mode: 'pins', pins } | { mode: 'clusters', clusters }
-      places/nearest/route.ts GET ?lat=&lon=&types=&limit= (default 1, max 50) → NearbyPlace[] (§6.4)
+      places/nearest/route.ts GET ?lat=&lon=&types=&limit= (default 1, max 100) → NearbyPlace[] (§6.4);
+                             lat/lon are rounded to 3 decimals by the client (§7.4)
       zips/[zip]/route.ts    GET → bounds + center, or 404
       health/route.ts        GET → { ok, places } via a 1-row meta lookup (uptime monitoring)
   lib/
@@ -388,7 +396,10 @@ web/
                              pins not focusable (§7.5); size-reserving "Loading map…" placeholder; tile-failure notice
     PlacesList.tsx           "Places near here": N nearest as an ordered list of links; highlights the matching pin on focus/hover;
                              "Distances from …" line; empty and error notes (§7.6)
-    Legend.tsx               text legend for pin glyphs, levels and "Projected"
+    Legend.tsx               text legend for pin glyphs, levels, "Projected" and the neutral pin; a collapsible panel
+                             inside the map region (§7.4)
+    Header.tsx               site name linking to /; zip field on place and About pages from medium width up
+    ShareButton.tsx          Web Share API, falling back to copying the link
     LevelMeter.tsx, RiskGlyph.tsx  the two glyph systems (§7.4); aria-hidden, always next to words
     Announcer.tsx            the single polite live region and its message helper (§7.5)
     PlacePanel.tsx, RiskCard.tsx, ZipSearch.tsx, LocateButton.tsx, RiskFilters.tsx, ViewToggle.tsx
@@ -408,14 +419,15 @@ web/
 
 ```ts
 type RiskType = 'air' | 'fire' | 'heat' | 'sea';
+type Filter = RiskType | 'unflagged';        // what ?types= holds; 'unflagged' is a filter, not a risk (§5.3)
 type Level = 'low' | 'elevated' | 'high' | 'severe';
 type PlaceKind = 'bus_stop' | 'park' | 'playground' | 'school';
 
-interface PinSummary { slug: string; name: string; kind: PlaceKind; lat: number; lon: number; level: Level; sea: boolean }
+interface PinSummary { slug: string; name: string; kind: PlaceKind; lat: number; lon: number; level: Level; sea: boolean; unflagged: boolean }
 interface Cluster    { lat: number; lon: number; count: number; level: Level; sea: boolean }
 interface NearbyPlace {
   slug: string; name: string; kind: PlaceKind; lat: number; lon: number; distanceM: number;
-  levels: { air: Level; fire: Level; heat: Level }; sea: boolean;   // for list labels like "Heat: High, Air: Elevated"
+  levels: { air: Level; fire: Level; heat: Level }; sea: boolean;   // for list labels like "Heat: High, Air pollution: Elevated"
 }
 
 interface PlaceDetail {
@@ -437,10 +449,13 @@ interface Projection {                    // from meta
 
 - **Selecting a place:** clicking a pin, or activating a link in "Places near here", navigates to `/places/[slug]`; the layout's map and list persist and the panel swaps. Focus moves to the panel's heading (§7.5). Direct loads of a share URL server-render the panel; the map centers on the place on hydration, and on back/forward navigation it recenters on the place the URL names.
   - If the place is outside the view (list items can be), the map pans to it (instant with reduced motion).
+  - **On narrow screens in map view** (`view=map`), opening a place switches to the panel view; the toggle then reads "Show map" and returns to the map centred on the place. Otherwise a tap on a pin changes the URL and focus while the screen still shows the map.
+  - **Clicking a cluster** zooms two levels in, centred on it (instant with reduced motion). It doesn't open anything.
+  - **On hover** (pointer devices), a pin shows a tooltip with the place's name and kind. Pins stay out of the tab order (§7.5); the list is the keyboard path.
   - The open place always has a **selected marker**, drawn whatever the filters and whether or not the place is visible (§5.3), in a style distinct from level pins. Otherwise a place hidden by a filter, or a place with nothing flagged opened from a share link, leaves the map centred on nothing.
   - **Map moves the app makes don't refresh the list:** opening a place, and the fly-to after an entry action. Only moves the user makes do. Otherwise the refresh reorders the list around the new centre and can remove the item that opened the place, and focus can't return to it (§7.5).
 - **Risk card order (consequence first):** each `RiskCard` is a `<section>` that reads top-down, in the DOM and visually, as
-  1. a **heading** (`<h2>`) naming the risk and its level: "Heat — High"; for sea level rise, "Sea level rise — Projected". Visually the header row has the **risk glyph + risk name** on the left and the **level meter + level word** on the right, as a small badge; colour is reinforcement only, never the sole signal;
+  1. a **heading** (`<h2>`) naming the risk and its level: "Heat — High"; for sea level rise, "Sea level rise — Projected". Risk names come from one table in the voice doc §8 ("Air pollution", "Heat", "Wildfire", "Sea level rise") and are used the same way in filters, chips, list items and messages. The first level badge in the panel is followed by a small "How levels work" link to the About page's thresholds. Visually the header row has the **risk glyph + risk name** on the left and the **level meter + level word** on the right, as a small badge; colour is reinforcement only, never the sole signal;
   2. the **So What?** sentence (`soWhat`), the most prominent text on the card;
   3. the **trend** line, when present, visually distinct from today's text, with its "Projected" label placed *before* the sentence in the DOM ("Projected: And it's getting hotter …") so a screen reader never reads a projection as today's fact;
   4. the specific risk (`detail`);
@@ -463,21 +478,25 @@ interface Projection {                    // from meta
   - Defined in `web/lib/tips.ts` as fixed data keyed by `RiskType`: `{ text, linkText, url, org }`. One tip per type; tips don't vary by place, so they live in the app, not the database, and changing one needs no data rebuild.
   - Wording follows the [voice doc](../../content/2026-09-28-so-what-voice-and-templates.md) §7: a verb and a link, never repeating the `so_what`; about what to do now, even under a trend line.
   - `linkText` names the organization ("AirNow", "Ready LA County"), so a screen reader announces where the link goes. Links open in the same tab.
-  - Not shown on `low` cards or on the collapsed "Not flagged today" line: a next step for a risk that isn't flagged would imply a risk the data doesn't show.
+  - Not shown on `low` cards or on the collapsed "Not flagged in current data" line: a next step for a risk that isn't flagged would imply a risk the data doesn't show.
   - The About page lists every tip's organization and URL alongside the data sources.
-- **Panel order:** today's cards (air, heat, fire) first, sorted by level; the sea-level-rise card last. Its level slot shows a **"Projected"** label instead of a level, and it uses the same visual treatment as trend lines. `low` cards without a trend line collapse into one line ("Not flagged today for air or wildfire") after the flagged cards and above the sea-level-rise card, so the projection isn't mistaken for today's finding. The collapsed line is a `<button aria-expanded>` that reveals them. **A `low` card with a trend line stays expanded** (without a tip), after the flagged cards: collapsing it would hide the "getting hotter" line, and with it the climate story for every place that isn't flagged today. The panel ends with **"Nearby places"**: the 5 nearest visible places (§6.4) as links, so users can move between places without the map.
-- **One places list per page:** on place pages, the layout's "Places near here" list collapses to a "← Places near here" back link at the top of the panel, and the panel's "Nearby places" replaces it. Showing both duplicated content and pushed the cards down. The back link restores the list as it was when the place was opened and returns focus to the item that opened it (§7.5). If that item is gone anyway, focus goes to the list's heading.
-- **Pins:** level is encoded by **colour and the level meter** inside the pin (1, 2 or 3 filled slots of 3), in a palette that stays distinguishable under common colour-vision deficiencies (sequential, not red/green). Every pin and cluster has a white halo and dark outline so it keeps 3:1 contrast against light and dark tiles. A place visible only through `sea_flag` uses a **dashed outline with a wave glyph**; a place with both today's findings and `sea_flag` adds the wave glyph as a small badge. Nothing relies on colour alone. `Legend.tsx` explains every symbol in text.
-- **Filters:** `?types=air,heat,fire,sea` in the URL; applied to pins, clusters, nearest search and both places lists; preserved in share links. Default (no `types` parameter): all four. No types selected: `?types=none`, and the list says "No risk types selected. Turn one on to see places." **Filters never apply to the place panel**, which always shows all of a place's risks. Page URLs parse `types` and `view` leniently: unknown values are dropped, and if nothing valid remains the default applies. (The API still returns 400 for malformed input; only page URLs are lenient, so a mangled share link still opens the place.)
-- **First screen** (before any entry action): the start panel is the main content, and "Places near here" isn't rendered until the user picks an entry action, so nothing suggests places near a point they didn't choose. The map starts at county zoom (clusters only), centred on the populated basin rather than the county's geographic centre, which is in the Angeles National Forest.
+- **Panel order:** today's cards (air, heat, fire) first, sorted by level; the sea-level-rise card last. Its level slot shows a **"Projected"** label instead of a level, and it uses the same visual treatment as trend lines. `low` cards without a trend line collapse into one line ("Not flagged in current data for air pollution or wildfire") after the flagged cards and above the sea-level-rise card, so the projection isn't mistaken for today's finding. The collapsed line is a `<button aria-expanded>` that reveals them. **A `low` card with a trend line stays expanded** (without a tip), after the flagged cards: collapsing it would hide the "getting hotter" line, and with it the climate story for every place that isn't flagged today. The panel ends with **"Nearby places"**: the 5 nearest visible places (§6.4) as links, so users can move between places without the map. Under the place name, next to the at-a-glance row, a **Share** button (`ShareButton.tsx`) uses the Web Share API where available and otherwise copies the link ("Link copied"), since phones hide the URL bar.
+- **One places list per page:** on place pages, the layout's "Places near here" list collapses to a "← Places near here" back link at the top of the panel, and the panel's "Nearby places" replaces it. Showing both duplicated content and pushed the cards down. The back link restores the list as it was when the place was opened and returns focus to the item that opened it (§7.5). If that item is gone anyway, focus goes to the list's heading. **After a direct load** (a share link or the example link), there's no saved list: the back link shows the list measured from this place ("Distances from {place}.") and focuses its heading.
+- **Header** (`Header.tsx`, every page): the site name, linking to the start page. On place and About pages, from medium width up, it also holds the zip field, so someone who arrived from a share link can look up their own area. On narrow screens the site name link is enough.
+- **Pins:** level is encoded by **colour and the level meter** inside the pin (1, 2 or 3 filled slots of 3), in a palette that stays distinguishable under common colour-vision deficiencies (sequential, not red/green). Every pin and cluster has a white halo and dark outline so it keeps 3:1 contrast against light and dark tiles. A place visible only through `sea_flag` uses a **dashed outline with a wave glyph**; a place with both today's findings and `sea_flag` adds the wave glyph as a small badge. A place visible only through `unflagged` gets a **neutral pin**: smaller, grey, no level meter. Nothing relies on colour alone.
+- **Legend** (`Legend.tsx`): explains every symbol in text. It sits inside the map region as a collapsible panel (`<button aria-expanded>` "Legend"), open by default on wide screens and closed in phone map view, where it's one tap away. The About page repeats it. Exact placement is settled in the visual design pass.
+- **Filters:** `?types=air,heat,fire,sea` in the URL, plus `unflagged` when that filter is on; applied to pins, clusters, nearest search and both places lists; preserved in share links. Default (no `types` parameter): all four risks, Unflagged off. Nothing selected: `?types=none`, and the list says "No risk types selected. Turn one on to see places."
+  - **Unflagged** (§5.3) is a fifth checkbox after the four risks, visually set apart from them. It shows places with nothing flagged, as neutral pins and in the lists, so a resident can find the stop they use even when nothing there is flagged, and read its trend line. While it's off, the list says so under its heading ("Showing flagged places only." with a "Show unflagged too" button), and the nothing-flagged messages after an entry action say that unflagged places are hidden (voice doc §10). Unflagged places are never hidden without saying so. **Filters never apply to the place panel**, which always shows all of a place's risks. Page URLs parse `types` and `view` leniently: unknown values are dropped, and if nothing valid remains the default applies. (The API still returns 400 for malformed input; only page URLs are lenient, so a mangled share link still opens the place.)
+- **First screen** (before any entry action): the start panel is the main content. It opens with the page's `<h1>` "So What?" and one sentence saying what the site is ("What climate risks mean at LA County bus stops, parks, playgrounds and schools."), then the three actions. The start panel is the only place that explains the site, and a visitor from a shared home-page link hasn't seen the video. "Places near here" isn't rendered until the user picks an entry action, so nothing suggests places near a point they didn't choose. The map starts at county zoom (clusters only), centred on the populated basin rather than the county's geographic centre, which is in the Angeles National Forest.
 - **Entry flow:**
   1. Start panel offers **Use my location**, **zip search**, and **Show me an example**. "Show me an example" is a real link to `/places/{featured_slug}`, and zip search is a real `<form method="get">` that JavaScript enhances: without it, the start page resolves `?zip=` on the server and renders "Places near here" for that zip. Both then work before the map code has loaded.
-  2. **Use my location:** the button reads "Finding your location…" (`aria-busy`) while waiting; zip search and the example stay enabled. The app applies its own **15-second limit**, which also covers an unanswered permission prompt (the browser's `timeout` only starts once permission is granted). If the user starts another entry action first, a late location result is **ignored** and never moves the map. Repeat activations while one is in progress are ignored. Where the Permissions API reports location as blocked, a hint under the button says so.
+  2. **Use my location:** the button reads "Finding your location…" (`aria-busy`) while waiting; zip search and the example stay enabled. The app applies its own **15-second limit**, which also covers an unanswered permission prompt (the browser's `timeout` only starts once permission is granted). If the user starts another entry action first, a late location result is **ignored** and never moves the map. Repeat activations while one is in progress are ignored. A standing hint under the button says what location is for ("Only used to find places near you."); where the Permissions API reports location as blocked, the hint says that instead.
+     **Privacy:** the client rounds the position to 3 decimal places (about 100 m) before any request, and never writes the user's own position to the URL. The map view isn't synced to the URL after locating until the user moves the map, so a copied link can't carry where they are.
   3. **Inside LA County** means inside the simplified county outline (`web/lib/county-outline.json`, written by the pipeline), tested by `lib/county.ts`: the same ray casting as `geometry.py`, ported to TypeScript and checked against shared test vectors (as §6.1 does for the grid). No database read. A bounding box alone would count most of the ocean between the mainland and Catalina as inside.
   4. Geolocation inside LA County → center there. Otherwise → fly to the featured starting spot, with a message that fits the case: **denied** ("Location is off, so here's an example place. You can also search by zip code."), **timed out or unavailable**, or **outside LA County**. Wording for all three: voice doc §10.
   5. Zip search: the browser checks the format first (5 digits; `90012-1234` and surrounding spaces are accepted and trimmed), so malformed input never reaches the API → `/api/zips/[zip]` → fit bounds. Not found, or the service unavailable → inline message (voice doc §10).
   6. Every entry action also refreshes **"Places near here"** from that point (the user's location, the zip's center, or the featured spot), and the result is announced (§7.5).
-- **"Places near here" list:** the 20 nearest visible places (§6.4) as an ordered list of links, each reading e.g. "Vermont / Sunset (east side) — bus stop — Heat: High, Air: Elevated — 0.3 miles". A line under the heading says what distances are measured from ("Distances from your location." / "from 90012" / "from the center of the map" / "from {place}"). It follows the risk filters, refreshes after each entry action and when the map settles after a move the user made (debounced), and works at every zoom, including county zoom where the map shows only clusters. Focusing or hovering an item highlights its pin. While refreshing, the old list stays, slightly dimmed, with `aria-busy="true"`.
+- **"Places near here" list:** the 20 nearest visible places (§6.4) as an ordered list of links, each reading e.g. "Vermont / Sunset (east side) — bus stop — Heat: High, Air pollution: Elevated — 0.3 miles" (an unflagged place reads "… — Not flagged — …"). A **"Show 20 more"** button below it extends the list, up to 100; focus stays on the button, and the new items are announced ("20 more places."), so the list path reaches as far as the map does in practice. A line under the heading says what distances are measured from ("Distances from your location." / "from 90012" / "from the center of the map" / "from {place}"). It follows the risk filters, refreshes after each entry action and when the map settles after a move the user made (debounced), and works at every zoom, including county zoom where the map shows only clusters. Focusing or hovering an item highlights its pin. While refreshing, the old list stays, slightly dimmed, with `aria-busy="true"`.
 - **Empty-viewport check:**
   - After an entry action (geolocation or zip) yields zero visible pins → nearest search → a message naming the nearest flagged place and its distance, with variants for location, zip and sea-only filters (voice doc §10) → fly there. The message says "nothing is flagged," never that the area is safe or low-risk. **Sea only:** if the nearest flagged place is more than 10 miles away, don't fly; the message and the list carry it.
   - During manual panning → never auto-move. The list still shows the nearest places to the map's center, which may lie outside the view; when none are in view, a note above the list says "No flagged places in view. These are the nearest." (sea-only and outside-the-county variants in voice doc §10). The list is empty only when no types are selected, or when the selected types match no place in the county ("No places match these filters. Turn on more risk types.").
@@ -498,14 +517,15 @@ interface Projection {                    // from meta
 - **Page structure:**
   - `lang="en"`; a "Skip to main content" link first.
   - Landmarks: `header`; `nav` (filters); `main` (panel and list); a labelled `region` for the map; `footer`.
-  - One `<h1>` per page: the place name on place pages.
+  - One `<h1>` per page: the place name on place pages; "So What?" on the start page (§7.4).
   - Risk cards are `<h2>` sections (§7.4); "Places near here" and "Nearby places" are `<h2>` sections with `<ol>` lists.
 - **Titles and share metadata:**
   - Place pages: `<title>{place name} ({kind}) — So What?`. Start page: "So What? — Climate risk at LA County places".
-  - OG and Twitter images get `og:image:alt` / `twitter:image:alt`, e.g. "Vermont / Sunset bus stop — Heat: High."
+  - OG and Twitter images get `og:image:alt` / `twitter:image:alt`, e.g. "Vermont / Sunset bus stop. Heat — High: this neighborhood traps more heat from pavement and buildings than 94% of LA County neighborhoods."
+  - The OG image never shows a level without its scope: the top risk as "Heat — High" plus the first clause of its So What? sentence. A named school labelled "Air pollution — Severe" on social media, with no "than 97% of California neighborhoods", is the kind of label the voice doc's principle 3 exists to avoid.
 - **Focus:**
   - After navigating to a place, focus moves to the panel's `<h1>` (`tabindex="-1"`). Next.js also announces the route change from the page title.
-  - "Back to list" returns focus to the list item that opened the place.
+  - The "← Places near here" back link returns focus to the list item that opened the place (§7.4).
   - Map moves, filter changes and list refreshes never move focus, with one exception: if a refresh removes the focused list item, focus moves to the list's heading (`tabindex="-1"`) instead of dropping to `<body>`.
   - Focus rings are always visible, 2px or more, with 3:1 contrast.
   - There are no modal dialogs. Any added later must close with Escape and return focus.
@@ -523,15 +543,17 @@ interface Projection {                    // from meta
   | Zip error | The same text as the error under the field. Focus stays on the Search button after submit, so the field's description alone isn't read. |
   | Data unavailable (503) | "Place data isn't loading right now." |
   | Offline / back online | "You're offline." / "Back online." |
+  | "Show 20 more" | "{n} more places." |
+  | Share link copied (fallback) | "Link copied." |
 
 - **Forms:**
   - Zip search has a visible `<label>` "Zip code", `inputmode="numeric"` and `autocomplete="postal-code"`. Errors appear under the field, linked with `aria-invalid` / `aria-describedby`.
-  - Risk filters are native checkboxes in a `<fieldset>` with `<legend>Show risks</legend>`. The sea label reads "Sea level rise (projected)".
+  - Filters are native checkboxes in a `<fieldset>` with `<legend>Show</legend>`: "Air pollution", "Heat", "Wildfire", "Sea level rise (projected)", then, set apart, "Unflagged". (The legend was "Show risks" until Unflagged, which isn't a risk, joined the group.)
 - **Narrow screens and zoom (reflow at 320 CSS px / 400%):**
   - The list, or the place panel, is the main view in normal document flow.
   - A **"Show map / Show list"** toggle (`ViewToggle.tsx`, a button with `aria-pressed`, state kept in the URL) switches views.
   - No drag-only bottom sheet.
-  - The four risk filters stay visible above the list (about 80px), rather than behind a disclosure, so filtering stays one tap.
+  - The filters stay visible above the list (about 80px; recheck the height with Unflagged added), rather than behind a disclosure, so filtering stays one tap.
 - **Motion:** with `prefers-reduced-motion`, fly-to and zoom animations become instant `setView` jumps.
 - **Sizes:** base text 16px or more; touch targets at least 24px, and 44px for primary buttons.
 
@@ -548,7 +570,7 @@ Every state below, with what the user can do in it, is in the [resilience review
 - **Tile failure:** after several `tileerror` events, a notice in the map area says the background isn't loading and that places and the list still work.
 - **Offline:** a notice that clears on the browser's `online` event. No service worker; opening a place while offline falls back to the browser's own offline page.
 - **Not found:** "We can't find that place", covering both a mistyped link and a place removed on purpose, with links to the map and the example. HTTP 404.
-- **A place with nothing flagged today and no sea card** (reachable only by URL) shows the collapsed "Not flagged today…" line and "Nearby places". If no nearby place matches the filters: "No other places nearby match these filters."
+- **A place with nothing flagged and no sea card** (reachable with the Unflagged filter, or by URL) shows the collapsed "Not flagged in current data…" line, any trend lines, and "Nearby places". If no nearby place matches the filters: "No other places nearby match these filters."
 - **Footer:** "Data as of {build date}" on every page, from `meta.build_date` (cached).
 - The About page says in one sentence why a card may have no trend line: the projected change is below the meaningful-change threshold, or the projection grid has no value there.
 
@@ -582,6 +604,7 @@ Before any feature work: a hello-world Next.js app on Vercel with the custom dom
 - All query parameters are parsed and range-checked in `geo.ts` before reaching `queries.ts`; all SQL goes through Drizzle's parameterized builder / `sql` template (no string concatenation).
 - Tile key restricted to the production domain, the project's Vercel preview domains, and localhost.
 - Page URLs (`types`, `view`) are parsed leniently in the page, but API parameters are still validated strictly (§7.4, §10.1).
+- The user's location is rounded to about 100 m before it leaves the browser, and never written to the URL (§7.4). The app stores nothing about visitors; the only record of a request is the host's standard request log.
 
 ## 10. Error handling and validation
 
@@ -610,7 +633,7 @@ Fails the build (non-zero exit; nothing published) if any of:
 - a `sea` row exists for a place with `sea_flag = 0`, or is missing for a place with `sea_flag = 1`;
 - any sea row exists but `meta` lacks `sea_scenario`, `sea_rise`, `sea_flood_condition`, or `sea_period`;
 - `sea_flag = 1` for a place outside the CoSMoS extent's overall bounds (catches a reprojection mistake);
-- a `risks` row references a missing source;
+- a `risks` row references a missing source, or a source used by a today risk has no `data_years`;
 - duplicate slugs or source keys;
 - two places of the same kind within about 150 m share a name (disambiguation missed them, §5.2), or any name is empty;
 - a `showcase.yaml` entry references a nonexistent `source_key` or lacks a citation;
@@ -644,7 +667,7 @@ Fails the build (non-zero exit; nothing published) if any of:
 - `county.ts`: the shared outline test vectors give the same answers as the pipeline.
 - `format.ts`: distances at 0.05, 1 and 10 miles; "1 place" / "2 places"; type lists including "all risk types".
 - `queries.ts`:
-  - viewport query: edge cells overhanging the viewport are excluded; type filters; low-risk hiding; a sea-only place is visible with `sea` selected and hidden without it; `types=sea` alone and a single today type both build a valid clause; **no types selected returns nothing** (not every place); 1,001 visible places in view switch the response to clusters.
+  - viewport query: edge cells overhanging the viewport are excluded; type filters; low-risk hiding; a sea-only place is visible with `sea` selected and hidden without it; `types=sea` alone and a single today type both build a valid clause; **no types selected returns nothing** (not every place); 1,001 visible places in view switch the response to clusters; `unflagged` adds exactly the places with nothing flagged (and `sea_flag = 0`), never a place with a flag the user turned off, and `types=unflagged` alone is a valid clause.
   - clusters: coarse grouping is correct across negative columns (floor division).
   - nearest (`N = 1`): the **trap case** — the first non-empty box contains a point, but the true nearest lies just outside that box — returns the true nearest; the empty-until-cap case returns an empty array.
   - N nearest: the trap case generalized — the first box holds `N` candidates but the true `N`-th nearest lies just outside it — returns the true `N`; fewer than `N` visible places in the county returns all of them, sorted; results match a brute-force sort of the fixture on shared test vectors.
@@ -656,6 +679,9 @@ Fails the build (non-zero exit; nothing published) if any of:
 - Zip search for an LA zip fits the map; a non-LA zip shows the message.
 - Geolocation mocked outside LA triggers the fallback flow with the outside-LA message; denied geolocation shows the denied message, not the outside-LA one.
 - Unchecking every filter shows "No risk types selected" and no pins.
+- With Unflagged off, a place with nothing flagged isn't in the list and the list says "Showing flagged places only."; "Show unflagged too" adds it.
+- On a 375px-wide viewport in map view, tapping a pin shows the place panel.
+- Locating never puts coordinates in the URL; requests carry them to 3 decimal places.
 - Open a place, turn off the filter that makes it visible: the selected marker stays, and the panel still shows every risk.
 - An unknown slug returns 404 with the not-found page; a place page with the database unreachable returns a 5xx with the error state, and a showcase page still renders.
 - `@axe-core/playwright` scans the start page, a place page with and without a sea card, the About page and the not-found page; any violation fails the test.
@@ -675,11 +701,11 @@ Fails the build (non-zero exit; nothing published) if any of:
 | Milestone | Deliverable |
 |---|---|
 | **M0 — Deployment spike** | §8.3. |
-| **M1 — Data spike** | Every source in §5.1 confirmed (license, format, coordinate reference system, vintage); heat-island data confirmed; **fire hazard zones confirmed**: use the 2025 Local Responsibility Area maps as *adopted* by LA County and its cities (OSFM issued them as recommendations on 2025-03-24), plus the State Responsibility Area maps, and confirm that Moderate, High and Very High all appear in the downloaded data (older LRA maps showed only Very High, which would leave the fire levels in §5.4 with nothing to map); **climate projection confirmed**: grid resolution and format, extreme-heat-day definition, SSP2-4.5 available, baseline and mid-century periods; wildfire projection adopted or dropped; **sea level rise confirmed**: OPC Intermediate mid-century amount for the LA tide gauges, the matching CoSMoS increment, and whether "flooded" includes storm conditions; count of flagged places by kind (if almost none, revisit before M2); meaningful-change threshold set; thresholds sanity-checked against real distributions; **featured place chosen** (§5.5); whether Metro's `stops.txt` has a usable direction or description field for telling same-name stops apart (§5.2), and how many OSM playgrounds are unnamed. |
+| **M1 — Data spike** | Every source in §5.1 confirmed (license, format, coordinate reference system, vintage); heat-island data confirmed; **fire hazard zones confirmed**: use the 2025 Local Responsibility Area maps as *adopted* by LA County and its cities (OSFM issued them as recommendations on 2025-03-24), plus the State Responsibility Area maps, and confirm that Moderate, High and Very High all appear in the downloaded data (older LRA maps showed only Very High, which would leave the fire levels in §5.4 with nothing to map); **climate projection confirmed**: grid resolution and format, extreme-heat-day definition, SSP2-4.5 available, baseline and mid-century periods; wildfire projection adopted or dropped; **sea level rise confirmed**: OPC Intermediate mid-century amount for the LA tide gauges, the matching CoSMoS increment, and whether "flooded" includes storm conditions; count of flagged places by kind (if almost none, revisit before M2); meaningful-change threshold set; thresholds sanity-checked against real distributions; **featured place chosen** (§5.5); whether Metro's `stops.txt` has a usable direction or description field for telling same-name stops apart (§5.2), and how many OSM playgrounds are unnamed; **each source's data years** for the `detail` lines (§5.5), including the years behind CalEnviroScreen 4.0's PM2.5 and diesel PM indicators and the heat island index. |
 | **M2 — Pipeline** | Full ETL with tests; featured place's showcase entry written and cited; valid `data/sowhat-YYYYMMDD.db`; first publish to Turso. |
-| **M3 — Map + API** | Viewport pins, server-side clusters, filters, N-nearest search, "Places near here" list, pin glyphs and legend, map keyboard behavior (§7.5); bbox clipping, map bounds, no-types case, cluster fallback over 1,000 pins, selected marker, aborted superseded requests, map and list loading/error/offline states (§7.6). |
-| **M4 — Place pages** | Server-rendered panels, OG metadata and images, not-found, `error.tsx` and metadata/OG fallbacks, prerendered showcase pages (§7.6). |
-| **M5 — Entry flow** | First screen, geolocation (15-second limit, late results ignored, three fallback messages, county outline test), zip search, featured start, empty-viewport behavior, list refresh and announcements, narrow-screen list/map toggle. |
+| **M3 — Map + API** | Viewport pins, server-side clusters, filters, N-nearest search, "Places near here" list, pin glyphs and legend, map keyboard behavior (§7.5); bbox clipping, map bounds, no-types case, cluster fallback over 1,000 pins, selected marker, aborted superseded requests, map and list loading/error/offline states (§7.6); Unflagged filter and neutral pins, legend panel, cluster clicks, pin tooltips, "Show 20 more", map-to-panel switch on narrow screens. |
+| **M4 — Place pages** | Server-rendered panels, OG metadata and images (with scope), not-found, `error.tsx` and metadata/OG fallbacks, prerendered showcase pages (§7.6), header, Share button, back link after a direct load, "How levels work" link. |
+| **M5 — Entry flow** | First screen with `<h1>` and intro, geolocation (with rounding and no location in the URL) (15-second limit, late results ignored, three fallback messages, county outline test), zip search, featured start, empty-viewport behavior, list refresh and announcements, narrow-screen list/map toggle. |
 | **M6 — Content** | Showcase entries written and cited; tip URLs checked by hand; About page. |
 | **M7 — Ship** | Production deploy, manual accessibility checks (§11), README (≥ 750 words), demo video with an accurate caption file and a descriptive transcript, `submit50`. |
 
@@ -721,7 +747,7 @@ Fails the build (non-zero exit; nothing published) if any of:
 
 - Risk levels are derived from area-level data (census tracts, hazard zones) applied to points; they describe the surrounding area, not site-specific measurements.
 - CalEnviroScreen uses 2010 tract boundaries; ZCTAs approximate USPS zip codes.
-- Data is a snapshot as of the build date in `meta`.
+- Data is a snapshot as of the build date in `meta`. "Current data" means the most recent data available for each risk, and some of it describes conditions several years ago; each card's detail line gives the years.
 - Trend lines are climate-model projections for one emissions scenario, averaged over a grid cell of a few kilometres. They describe the surrounding area's likely direction, not a forecast for a specific place or year, and other scenarios give different values.
 - "Extreme-heat days" follow the projection source's definition, which may be relative to each area's own historical temperatures; counts show change over time more reliably than they compare one area with another.
 - Air quality has no projection; its card describes present-day conditions only.

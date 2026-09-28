@@ -1,6 +1,6 @@
 # So What? — Voice and Templates
 
-**Date:** 2026-09-28 (updated for spec rev. 7: today first, trend lines, sea level rise; §10 added from the [states and edge cases review](../resilience/2026-09-28-so-what-states-and-edge-cases.md))
+**Date:** 2026-09-28 (updated for spec rev. 7: today first, trend lines, sea level rise; §10 added from the [states and edge cases review](../resilience/2026-09-28-so-what-states-and-edge-cases.md); rev. 11: risk names, data years, "current data", start page and Unflagged labels, from the [UX evaluation](../evaluation/2026-09-28-so-what-ux-evaluation.md))
 **Status:** Draft. Wildfire trend and sea-level-rise wording are provisional until M1 confirms the data.
 **Related:** [design spec](../superpowers/specs/2026-09-27-so-what-design.md) §1 (today first, then the trend), §5.5 (text), §7.4 (card and panel order), §15 (limitations) · [grader's first 30 seconds](../journeys/2026-09-28-grader-first-30-seconds.md)
 
@@ -227,15 +227,29 @@ Specified in spec §7.4: fixed data in `web/lib/tips.ts`, keyed by risk type, sh
 
 | Type | Format | Example |
 |---|---|---|
-| air | PM2.5: {pm25}th percentile · Diesel PM: {diesel}th percentile (statewide) | PM2.5: 91st percentile · Diesel PM: 88th percentile (statewide) |
-| heat | Urban Heat Island Index: {p}th percentile in LA County | Urban Heat Island Index: 94th percentile in LA County |
-| fire | CAL FIRE Fire Hazard Severity Zone: {zone} | CAL FIRE Fire Hazard Severity Zone: Very High |
+| air | PM2.5: {pm25}th percentile · Diesel PM: {diesel}th percentile (statewide, {years} data) | PM2.5: 91st percentile · Diesel PM: 88th percentile (statewide, 2015–2017 data) *(years to confirm in M1)* |
+| heat | Urban Heat Island Index: {p}th percentile in LA County ({years} data) | Urban Heat Island Index: 94th percentile in LA County ({years} data) |
+| fire | CAL FIRE Fire Hazard Severity Zone: {zone} ({year} map) | CAL FIRE Fire Hazard Severity Zone: Very High (2025 map) |
 | sea | USGS CoSMoS: {rise} sea level rise, {condition label} · OPC Intermediate scenario, {period} | USGS CoSMoS: 1 ft sea level rise, annual storm · OPC Intermediate scenario, 2040–2060 *(illustrative)* |
 | trend source line | Projection: Cal-Adapt LOCA2, SSP2-4.5, {baseline} vs. {future} | Projection: Cal-Adapt LOCA2, SSP2-4.5, 1981–2010 vs. 2035–2064 *(illustrative)* |
 
 - Ordinals need a helper function (91**st**, 92**nd**, 93**rd**, 11**th**–13**th**). Test it at the boundaries.
 - Air shows both measures, because the level uses whichever is higher and a reader should be able to see which one it was.
+- **Every today `detail` names its data years** (`{years}` from `sources`, set in M1). "Today" in this doc means *the most recent data available for each risk*, and some of it is several years old. The About page says so in those words. The panel's own wording says "current data", never "today" (see the collapsed line below).
 - **A label mismatch to decide:** a Very High zone shows the app label **Severe** next to CAL FIRE's own words **Very High**. Keeping CAL FIRE's name in `detail` is right, because it's the official term people will search for. Check in testing whether the two labels together confuse people.
+
+**Risk names.** One display name per risk type, used everywhere a person sees it: filters, card headings, chips, list items, the collapsed line, messages and share images.
+
+| Type | Name (start of a label) | In a sentence |
+|---|---|---|
+| air | Air pollution | air pollution |
+| heat | Heat | heat |
+| fire | Wildfire | wildfire |
+| sea | Sea level rise | sea level rise |
+
+"Air pollution", not "Air quality": "Air quality — High" would read as *good* air.
+
+**Risk and level together:** "Heat — High" in headings, chips and share images. List items use a colon ("Heat: High"), because their fields are already separated by dashes.
 
 **Fixed labels on the panel:**
 
@@ -243,14 +257,31 @@ Specified in spec §7.4: fixed data in `web/lib/tips.ts`, keyed by risk type, sh
 |---|---|
 | Level slot on a today card | Low · Elevated · High · Severe |
 | Label on a trend line, and in the level slot of a sea card | Projected |
-| Collapsed line for a place with nothing flagged today (spec §7.4) | Not flagged today for air, heat or wildfire. |
+| Collapsed line for a place with nothing flagged (spec §7.4) | Not flagged in current data for air pollution, heat or wildfire. |
 | Map legend, dashed pin with wave glyph | Projected coastal flooding by mid-century |
+| Map legend, neutral pin | Not flagged for any risk |
 | Card heading (spec §7.4) | {Risk} — {Level}, e.g. "Heat — High"; "Sea level rise — Projected" |
+| Link next to the first level badge in the panel | How levels work (to the About page's thresholds section) |
 | Distances | "1.4 miles", never "1.4 mi" |
 | Disclosure for detail and full sources, phones only (spec §7.4) | About this data |
 | Short source line, phones (always visible) | Source: CalEPA · Cal-Adapt · Source: CalEnviroScreen (OEHHA) · Source: CAL FIRE · Source: USGS CoSMoS · OPC |
 | At-a-glance chips (2+ flagged cards) | {Risk} — {Level}, e.g. "Heat — High"; nav label "Risks at this place" |
-| Back link on place pages | Places near here |
+| Back link on place pages | ← Places near here |
+| List item | {place} — {kind} — {Risk}: {Level}, … — {distance}, e.g. "Vermont / Sunset (east side) — bus stop — Heat: High, Air pollution: Elevated — 0.3 miles". Unflagged: "… — Not flagged — …". Sea: "Sea level rise: Projected". |
+
+**Fixed labels elsewhere:**
+
+| Where | Text |
+|---|---|
+| Start page `<h1>` | So What? |
+| Start page intro, under the `<h1>` | What climate risks mean at LA County bus stops, parks, playgrounds and schools. |
+| Hint under "Use my location" | Only used to find places near you. |
+| Filter group legend | Show |
+| Filter labels | Air pollution · Heat · Wildfire · Sea level rise (projected) · Unflagged |
+| Header | So What? (links to the start page) · Zip code field on place and About pages, from medium width up |
+| Share button (falls back to copying the link) | Share · after copying: "Link copied" |
+| List, more places | Show 20 more |
+| Share image | {place} ({kind}), then the top risk as "{Risk} — {Level}" with its So What? sentence's first clause, so the level never appears without its scope |
 
 ---
 
@@ -265,9 +296,9 @@ Specified in spec §7.4: fixed data in `web/lib/tips.ts`, keyed by risk type, sh
 > Source: CalEPA Urban Heat Island Index · Projection: Cal-Adapt LOCA2, SSP2-4.5, {baseline} vs. {future}
 > *On hot days, cooling centers are open across LA County. Find one near you →*
 
-**A coastal park with nothing flagged today** (storm version, numbers illustrative):
+**A coastal park with nothing flagged** (storm version, numbers illustrative):
 
-> Not flagged today for air, heat or wildfire.
+> Not flagged in current data for air pollution, heat or wildfire.
 >
 > **By mid-century, with about 1 foot of sea level rise, a typical winter storm could flood this park. The park may close on those days.**
 > *Projected*
@@ -283,10 +314,11 @@ Every state in the [states and edge cases review](../resilience/2026-09-28-so-wh
 **Rules for these messages** (the five principles, applied):
 - Say what happened, then what the person can do. Every message has a way forward: a retry, another entry action, or a filter to turn on.
 - Never blame the person ("Invalid zip"). Never promise a time ("in a few minutes") we can't keep.
-- "Flagged" means `elevated` or above today, or a sea-level-rise flag. It's the word the panel already uses ("Not flagged today"), so it's safe to reuse. "Not flagged" never becomes "safe" or "low-risk" (§2).
+- "Flagged" means `elevated` or above in current data, or a sea-level-rise flag. It's the word the panel and the "Unflagged" filter already use, so it's safe to reuse. "Not flagged" never becomes "safe" or "low-risk" (§2).
 - No "Oops", "Uh oh" or "Something went wrong." Name the thing that isn't working.
 - Loading is shown, never announced. Results and errors are announced once, in the polite live region.
-- `{n}` uses the plural helper ("1 place", "2 places"). `{types}` joins names with commas and "and" ("heat, air and wildfire"), and reads "all risk types" when all four are on.
+- `{n}` uses the plural helper ("1 place", "2 places"). `{types}` joins the in-sentence risk names (§8) with commas and "and" ("heat, air pollution and wildfire"), reads "all risk types" when all four risks are on, and ends "and unflagged places" when Unflagged is on ("all risk types and unflagged places").
+- **Unflagged places are never hidden silently.** When the Unflagged filter is off, the list says so under its heading (below), and the "nothing flagged near an entry point" messages, which are announced, end with *Unflagged places are hidden. Turn on "Unflagged" to see them.* Otherwise someone looking for their own stop can't tell it's hidden rather than missing.
 
 ### Entry: location
 
@@ -330,12 +362,14 @@ Shown in the list's note area and announced; the map then moves to the nearest f
 | State | Text |
 |---|---|
 | Line under the heading (what distances are measured from) | Distances from your location. · Distances from {zip}. · Distances from the center of the map. · Distances from {place}. |
+| Line under the heading, Unflagged off | Showing flagged places only. *(with a link-styled button: "Show unflagged too", which turns on the filter)* |
 | Nothing flagged in view | No flagged places in view. These are the nearest. *(unchanged)* |
 | Nothing flagged in view, only sea level rise selected | No projected coastal flooding in view. These are the nearest places near the coast. |
 | Map outside LA County | This part of the map is outside LA County. These are the nearest LA County places. |
 | No risk types selected | No risk types selected. Turn one on to see places. |
 | Filters match nothing in the county | No places match these filters. Turn on more risk types. *(unchanged)* |
 | Place panel's "Nearby places", none match | No other places nearby match these filters. |
+| Show more (below the list) | Show 20 more *(hidden at 100 places, the cap)* |
 
 ### Filter announcements
 
