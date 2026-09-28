@@ -1,6 +1,6 @@
 # So What? — Design Spec
 
-**Date:** 2026-09-27 (rev. 5: featured place chosen in M1, consequence-first risk cards, So What? length cap — from [grader's first 30 seconds](../../journeys/2026-09-28-grader-first-30-seconds.md))
+**Date:** 2026-09-27 (rev. 7, 2026-09-28: sea level rise added as a projection-only risk; intermediate emissions scenario. Rev. 6: today's conditions as the core of each card, plus one projected-change line for risks climate change is making worse. Rev. 5: featured place chosen in M1, consequence-first risk cards, So What? length cap — from [grader's first 30 seconds](../../journeys/2026-09-28-grader-first-30-seconds.md))
 **Status:** Draft, awaiting review
 **Context:** CS50x final project (due before 2027-06-30 4:59 PM PDT), also deployed publicly on a custom domain, on free tiers.
 
@@ -8,9 +8,20 @@
 
 ## 1. Intent
 
-**Problem.** Climate data is too abstract for the average person. County-level projections and percentile scores don't answer "what does this mean for the bus stop I wait at?"
+**Problem.** Climate data is too abstract for the average person. County-level projections and percentile scores don't answer "what does this mean for the bus stop I wait at, and is it getting worse?"
 
-**Solution.** An interactive map of Los Angeles County that pins specific, everyday places — bus stops, parks, playgrounds, schools — and, for each, states the specific climate risk and its **"So What?"**: the concrete, human consequence.
+**Solution.** An interactive map of Los Angeles County that pins specific, everyday places — bus stops, parks, playgrounds, schools — and, for each, states the specific climate-related risk and its **"So What?"**: the concrete, human consequence.
+
+**Today first, then the trend.** Each card is built on **today's conditions**, because people can check them against their own experience, act on them now, and because present-day data is fine-grained enough for neighboring places to differ. For risks that climate change is making worse, the card adds **one projected-change line** ("and it's getting hotter: …"), which turns a local hazard into a climate story. Projections support the card; they never set its level (§5.4).
+
+| Risk | Today (sets the level) | Projected change (one line) |
+|---|---|---|
+| Heat | Urban heat island, by tract | Extreme-heat days per year, now vs. mid-century |
+| Wildfire | CAL FIRE hazard zone | Only if M1 finds usable neighborhood-scale projections |
+| Air | Fine-particle pollution, by tract | None. Labelled as present-day; no neighborhood-scale air projections are known to exist. |
+| Sea level rise | None of its own. The card's "today" content comes from the other three risks' findings, if any. | Whether the place lies inside the projected coastal flood area at mid-century. Coastal places only. |
+
+**Sea level rise is the one projection-only risk.** It has no level, because levels describe today (§5.4). Instead a place is *flagged* when it lies inside the projected flood area, and a flagged place is visible on the map when the sea-level filter is on, even if it has no elevated findings today (§5.3, §6.2). Its pin and card are styled as "Projected" so present and future are never confused.
 
 **Audience.** Primary: CS50 graders and demo-video viewers (most of whom are *not* in LA). Secondary: LA residents who find the public site.
 
@@ -27,7 +38,10 @@
 
 **In scope (MVP):**
 - LA County only.
-- Three risk types: **air quality, wildfire, extreme heat.**
+- Four risk types: **air quality, wildfire, extreme heat** (today's conditions, each with a level) and **sea level rise** (projection only, flagged rather than levelled).
+- One projected-change line for heat (and for wildfire if M1 confirms data), plus the sea-level-rise card, all using **one intermediate emissions scenario** and **one mid-century period**, named on the card and the About page:
+  - heat (and wildfire): **SSP2-4.5**, from Cal-Adapt's downscaled projections;
+  - sea level rise: the **Intermediate** scenario in California's sea-level-rise guidance (Ocean Protection Council), which M1 confirms follows the NOAA interagency scenario names.
 - Place kinds: `bus_stop`, `park`, `playground`, `school`.
 - Entry points: browser Geolocation, zip-code search, featured starting spot.
 - Shareable, server-rendered place pages with Open Graph previews.
@@ -37,10 +51,14 @@
 **Out of scope (YAGNI):**
 - User accounts, saved places, comments, or any user-written data.
 - Areas outside LA County.
-- Flooding (no reliable public "pooling intersections" dataset).
+- Inland and street flooding (no reliable public "pooling intersections" dataset). Coastal flooding from sea level rise is in scope.
+- Rising groundwater and coastal erosion (cliff and beach loss).
 - LLM-generated text.
 - Zip-code choropleth / area-shading views.
 - Live or real-time data (refreshed by manually re-running the pipeline).
+- Multiple emissions scenarios, end-of-century (2100) horizons, or projection ranges on the card (the About page explains the scenario and uncertainty instead).
+- Air-quality projections.
+- Projections affecting a place's level, pin visibility, or filters.
 
 ## 3. Architecture overview
 
@@ -73,10 +91,10 @@ final-project/
     normalize.py             clip to LA County, select fields, reproject to WGS84 lat/lon (pyproj)
     geometry.py              hand-written point-in-polygon (ray casting; holes; multipolygons) + bbox prefilter
     grid.py                  grid-cell assignment (§6.1); CELL_SIZE_DEG constant
-    join.py                  assign tract_id, fire zone, zip to every place
+    join.py                  assign tract_id, fire zone, zip, projection cell to every place
     score.py                 raw values → levels, using thresholds.py
     thresholds.py            every cutoff in one place, each with a rationale comment
-    templates.py             So What? sentence templates keyed by (risk type, place kind, level)
+    templates.py             So What? templates keyed by (risk type, place kind, level); sea templates keyed by kind; trend templates keyed by risk type
     render.py                fill templates; apply showcase overrides
     showcase.yaml            ~15–20 hand-written, cited showcase entries
     build.py                 orchestrates the steps; writes data/sowhat-YYYYMMDD.db; runs validate
@@ -98,13 +116,17 @@ final-project/
 
 ### 5.1 Sources
 
-Each source must be confirmed during the data milestone (§12, M1): availability, license, format, projection, and vintage.
+Each source must be confirmed during the data milestone (§12, M1): availability, license, format, coordinate reference system, and vintage.
 
 | Purpose | Candidate source | Grain | Notes |
 |---|---|---|---|
 | Air quality | CalEnviroScreen 4.0 (OEHHA) — PM2.5 and Diesel PM percentiles | Census tract (**2010 vintage**) | Tract shapes must be the matching 2010 TIGER tracts, not 2020. |
 | Wildfire | CAL FIRE Fire Hazard Severity Zones (SRA + LRA) | Polygons | Published in California Albers (EPSG:3310) — reproject. Use the most recent adopted maps. |
-| Extreme heat | CalEPA Urban Heat Island Index; fallback: Cal-Adapt extreme-heat-day projections | Census tract / grid | Chosen in M1. The chosen source determines the heat-card wording. |
+| Extreme heat (today) | CalEPA Urban Heat Island Index | Census tract | Sets the heat level. Measures extra heat trapped by the built environment, not absolute temperature; card wording must say so. |
+| Heat projection | Cal-Adapt downscaled climate projections (LOCA2) — extreme-heat days per year | Regular grid, a few km | Baseline vs. mid-century, SSP2-4.5. M1 confirms: grid resolution and format, the extreme-heat-day definition (believed to be location-relative, e.g. above that cell's historical 98th-percentile maximum — verify), the scenario, and both periods. |
+| Wildfire projection | Cal-Adapt wildfire projections | Grid (coarser) | **Optional.** Adopted only if M1 finds neighborhood-scale values that differ meaningfully across LA County; otherwise fire has no trend line. |
+| Sea-level-rise amount | Ocean Protection Council, *State of California Sea Level Rise Guidance* (2024 update) | Per tide gauge (Santa Monica / Los Angeles) | How much rise the Intermediate scenario projects for mid-century. Used only to pick which flood-extent layer below applies. |
+| Coastal flood extent | USGS CoSMoS (Coastal Storm Modeling System), Southern California | Polygons per sea-level-rise increment, with and without storm conditions | Pick the increment nearest the mid-century amount above. M1 decides whether "flooded" means everyday high tides with that rise, or also an annual storm — the card wording depends on it. Large, detailed multipolygons: a real test of `geometry.py`'s bbox prefilter. |
 | Tract shapes | US Census TIGER/Line 2010 tracts, California | Polygons | Must match CalEnviroScreen vintage. |
 | Zip codes | US Census 2020 ZCTAs | Polygons | ZCTAs approximate USPS zips; documented on the About page. |
 | Bus stops | LA Metro GTFS (`stops.txt`) | Points | Stable `stop_id`. |
@@ -138,18 +160,28 @@ CREATE TABLE places (
   air_rank    INTEGER NOT NULL CHECK (air_rank  BETWEEN 0 AND 3),  -- denormalized from risks.level
   fire_rank   INTEGER NOT NULL CHECK (fire_rank BETWEEN 0 AND 3),
   heat_rank   INTEGER NOT NULL CHECK (heat_rank BETWEEN 0 AND 3),
+  sea_flag    INTEGER NOT NULL DEFAULT 0 CHECK (sea_flag IN (0,1)),  -- inside projected mid-century coastal flood area
   is_showcase INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX places_cell ON places (cell_row, cell_col);
 
 CREATE TABLE risks (
   place_id  INTEGER NOT NULL REFERENCES places(id),
-  type      TEXT NOT NULL CHECK (type IN ('air','fire','heat')),
-  level     TEXT NOT NULL CHECK (level IN ('low','elevated','high','severe')),
+  type      TEXT NOT NULL CHECK (type IN ('air','fire','heat','sea')),
+  level     TEXT CHECK (level IN ('low','elevated','high','severe')),  -- NULL only for 'sea' (projection-only)
   value     REAL,                            -- raw metric (percentile, class code, etc.)
   detail    TEXT NOT NULL,                   -- the specific risk
-  so_what   TEXT NOT NULL,                   -- the human consequence
+  so_what   TEXT NOT NULL,                   -- the human consequence (today's conditions)
   source_id TEXT NOT NULL REFERENCES sources(id),
+  trend           TEXT,                      -- projected-change sentence; NULL when the type has no projection
+  trend_now       REAL,                      -- baseline-period value (e.g. extreme-heat days/yr)
+  trend_future    REAL,                      -- mid-century value, same unit
+  trend_source_id TEXT REFERENCES sources(id),
+  CHECK ((trend IS NULL) = (trend_source_id IS NULL)
+     AND (trend IS NULL) = (trend_now IS NULL)
+     AND (trend IS NULL) = (trend_future IS NULL)),
+  CHECK ((type = 'sea') = (level IS NULL)),
+  CHECK (type <> 'sea' OR trend IS NULL),    -- a sea row is itself the projection; so_what carries it
   PRIMARY KEY (place_id, type)
 );
 
@@ -167,12 +199,16 @@ CREATE TABLE zips (
 );
 
 CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
--- keys: build_date, cell_size_deg, schema_version, row_count_places, featured_slug, source versions
+-- keys: build_date, cell_size_deg, schema_version, row_count_places, featured_slug,
+--       projection_scenario, projection_baseline_period, projection_future_period,
+--       sea_scenario, sea_rise, sea_flood_condition, sea_period, source versions
 ```
 
 **Level ranks:** `low = 0`, `elevated = 1`, `high = 2`, `severe = 3`.
 
-**Deliberate denormalization.** `air_rank`/`fire_rank`/`heat_rank` duplicate `risks.level` so that map queries (viewport, nearest, cluster) touch a single table with no join. For the active filter set, a place's pin level is SQLite's multi-argument `max(...)` over the selected rank columns; a place is **visible iff that value ≥ 1**. `validate.py` checks the ranks agree with `risks`.
+**Deliberate denormalization.** `air_rank`/`fire_rank`/`heat_rank` duplicate `risks.level` so that map queries (viewport, nearest, cluster) touch a single table with no join. For the active filter set, a place's pin level is SQLite's multi-argument `max(...)` over the selected rank columns (air, fire, heat). A place is **visible iff that value ≥ 1, or `sea` is selected and `sea_flag = 1`**. `validate.py` checks the ranks and `sea_flag` agree with `risks`.
+
+`sea_flag` is a flag, not a rank: sea level rise has no level (§5.4), so it can make a place visible but never sets its pin level. A place visible only through `sea_flag` gets the distinct "projected" pin style (§7.4). Rows in `risks` with `type = 'sea'` exist only for flagged places; the other three types have a row for every place.
 
 ### 5.4 Scoring (initial thresholds)
 
@@ -186,16 +222,33 @@ All cutoffs live in `thresholds.py` with a rationale comment and are reproduced 
 
 Anything below `elevated` is `low`. Thresholds may be tuned during M1 after inspecting real distributions; changes are recorded in `thresholds.py` and the About page.
 
+**Sea level rise is not scored.** A place is flagged (`sea_flag = 1`) if it lies inside the selected CoSMoS flood extent (§5.1); otherwise it has no sea row. There is no sea-level-rise level, and nothing on the card or pin implies one.
+
+**Levels come from today's conditions only.** Projections never change a level. The trend lines never affect visibility or filtering; the sea-level-rise flag affects visibility only through its own filter, as described in §5.3. Mixing a present-day percentile with a mid-century model output in one level would make the level mean nothing precise, and it would let the most uncertain number move the map.
+
 ### 5.5 "So What?" text
 
-- **Templates** (`templates.py`) keyed by `(type, kind, level)`, interpolating place-specific values. Example — `(heat, bus_stop, high)`: *"Riders here wait in one of the hottest 10% of neighborhoods in LA County. Without a shelter or shade, midday summer waits can be a health risk, especially for older riders."*
-- Every `(type, kind, level ≥ elevated)` combination must have a template; `validate.py` enforces this. `low` rows get a short neutral sentence.
+Voice, word list and full template drafts: [So What? voice and templates](../../content/2026-09-28-so-what-voice-and-templates.md).
+
+- **Templates** (`templates.py`) keyed by `(type, kind, level)`, interpolating place-specific values. Example — `(heat, bus_stop, high)`: *"This neighborhood traps more heat from pavement and buildings than 94% of LA County neighborhoods. A long summer wait in direct sun can cause heat illness, especially for older riders."*
+- Every `(type, kind, level ≥ elevated)` combination must have a template; `validate.py` enforces this. `low` rows get a short neutral sentence that never calls a place safe.
 - **Length cap:** every rendered `so_what` is **≤ 30 words**, so it reads at a glance on the card and fits one caption line in the demo video, even at 2× speed. `validate.py` enforces this on rendered text (templates plus interpolated values, and showcase overrides).
-- **Wording scope:** `so_what` describes the *neighborhood* ("one of the hottest 10% of neighborhoods"), never the exact spot, because the data is tract- or zone-level (§15).
+- **Wording scope:** `so_what` describes the *neighborhood* ("than 94% of LA County neighborhoods"), never the exact spot, because the data is tract- or zone-level (§15).
+- **Trend line** (`trend`): one sentence per risk type that has a projection, keyed by type only, not by kind or level. It states the direction and both values in plain units, and names the period. Example — heat: *"And it's getting hotter: this area is projected to go from about 6 to 20 extreme-heat days a year by mid-century."* (numbers illustrative)
+  - Shown at **every** level, including `low`. A place that isn't flagged today can still be getting worse, and saying so is the climate story.
+  - Says "this area", not "this neighborhood", because the projection grid is coarser than a tract.
+  - **≤ 25 words**; `validate.py` enforces this.
+  - Numbers are rounded to whole days and prefixed "about"; the scenario and periods appear on the detail line and About page, not in the sentence.
+  - Only written when `trend_future` exceeds `trend_now` by a meaningful amount (threshold in `thresholds.py`). Otherwise `trend` is NULL rather than claiming a change the data doesn't show.
+- **Sea-level-rise `so_what`**: templates keyed by kind only (no level). The sentence is itself a projection, so it names the period and uses "could". Example — `(sea, bus_stop)`: *"By mid-century, with about {rise} of sea level rise, {flood condition} could flood this stop. Riders may need other routes on those days."* (`{rise}` and `{flood condition}` set in M1; wording illustrative.)
+  - Says "this stop / park / playground / school", not "this area": the flood extents are detailed polygons and point-in-polygon places each point exactly (as with fire).
+  - Same 30-word cap as other `so_what` text.
+  - `detail` names the source, scenario and increment (e.g. "USGS CoSMoS, {rise} sea level rise, {storm condition}; OPC Intermediate scenario, {period}").
 - **Showcase overrides** (`showcase.yaml`): ~15–20 places with hand-written `detail` and `so_what` plus a citation URL per entry.
 - **Featured place:** one showcase entry is the **featured starting spot**. It is used by "Show me an example", by the geolocation fallback, and as the place shown in the demo video's opening. It is **chosen at the end of M1**, once real distributions exist, and its showcase entry is written and validated in M2. It is marked `featured: true` in `showcase.yaml` (exactly one entry), and `build.py` writes its slug to `meta.featured_slug`, where the app reads it. Criteria:
   - kind is `bus_stop` (legible to viewers with no LA knowledge);
-  - `high` or above on at least two risks, one of them heat; all three `elevated`+ preferred;
+  - `high` or above on at least two risks, one of them heat; all three of today's risks `elevated`+ preferred;
+  - has a heat `trend` line;
   - a readable stop name;
   - ideally a stop the author knows or uses, rather than the most dramatic one available.
 
@@ -203,10 +256,10 @@ Anything below `elevated` is `low`. Thresholds may be tuned during M1 after insp
 
 1. **fetch** — download sources to `data/raw/`; record `retrieved_on`.
 2. **normalize** — reproject to WGS84; clip to LA County boundary; polygons → representative points for parks/playgrounds; drop unused fields.
-3. **join** — for each place, find its tract, fire zone, and ZCTA using `geometry.py`: bbox prefilter over candidate polygons, then ray-casting point-in-polygon honoring holes and multipolygons. Places outside every tract are dropped and counted.
+3. **join** — for each place, find its tract, fire zone, and ZCTA using `geometry.py`: bbox prefilter over candidate polygons, then ray-casting point-in-polygon honoring holes and multipolygons. Places outside every tract are dropped and counted. Each place also gets its **projection grid cell**: if the projection source is a regular lat/lon grid, by index arithmetic (the same `floor` reasoning as §6.1, against the source grid's origin and spacing); otherwise by point-in-polygon over the cell outlines. Places whose cell has no value keep a NULL trend. Finally, each place is tested against the selected CoSMoS flood extent with the same point-in-polygon code; a hit sets `sea_flag = 1`. Only places near the coast are tested (bbox prefilter against the extent's overall bounds), so inland places cost nothing.
 4. **grid** — assign `cell_row`, `cell_col` (§6.1).
 5. **score** — levels and ranks per §5.4.
-6. **render** — templates, then showcase overrides.
+6. **render** — `so_what` templates, then trend templates, then showcase overrides.
 7. **write** — create a fresh `data/sowhat-YYYYMMDD.db` from `schema.sql` (never mutate a previous build), insert rows, write `meta`, `VACUUM`, then `PRAGMA journal_mode=WAL` (required by `turso db import`).
 8. **validate** — §10.2. On failure, exit non-zero; nothing is published.
 
@@ -236,11 +289,12 @@ WHERE cell_row BETWEEN :r_south AND :r_north
   AND cell_col BETWEEN :c_west  AND :c_east
   AND lat BETWEEN :south AND :north
   AND lon BETWEEN :west  AND :east
-  AND max(<selected rank columns>) >= 1
+  AND ( max(<selected rank columns>) >= 1          -- omitted if no today type is selected
+        OR sea_flag = 1 )                           -- included only if 'sea' is selected
 LIMIT 1000
 ```
 
-Returns `PinSummary[]` with `level` = the computed max rank.
+Returns `PinSummary[]` with `level` = the computed max rank (0 = `low` when the place is visible only through `sea_flag`) and `sea` = `sea_flag = 1`. `queries.ts` builds the visibility clause from the selected types: with only `sea` selected it is just `sea_flag = 1`; with only one today type, `max()` gets a single argument, so the clause uses the column directly (SQLite's `max()` with one argument is the aggregate).
 
 ### 6.3 Zoomed-out clusters (server-side aggregation)
 
@@ -248,8 +302,10 @@ Below a zoom threshold (initially zoom < 13), the API returns counts per coarse 
 
 ```
 GROUP BY cell_row / :f, cell_col / :f      -- integer division; :f chosen by zoom (table in geo.ts)
-SELECT count(*), max(level), avg(lat), avg(lon)
+SELECT count(*), max(level), max(sea_flag), avg(lat), avg(lon)
 ```
+
+Clusters use the same visibility clause as §6.2. `max(level)` covers today's ranks only; `max(sea_flag)` tells the cluster marker to show the projected-flooding indicator.
 
 Integer division on negative `cell_col` rounds toward zero in SQLite, which would make the coarse cell straddling each multiple of `:f` twice as wide. Grouping therefore uses `(cell_col + COL_OFFSET) / :f`, where `COL_OFFSET = 36000` (a multiple of every zoom factor, and large enough that all columns become non-negative since `lon ≥ −180`). Rows are always positive in LA and need no offset. This is tested explicitly.
 
@@ -286,7 +342,7 @@ web/
       not-found.tsx
     about/page.tsx           method, thresholds, sources, attribution, limitations
     api/
-      places/route.ts        GET ?bbox=west,south,east,north&zoom=&types=air,fire,heat
+      places/route.ts        GET ?bbox=west,south,east,north&zoom=&types=air,fire,heat,sea
                              → { mode: 'pins', pins } | { mode: 'clusters', clusters }
       places/nearest/route.ts GET ?lat=&lon=&types=
       zips/[zip]/route.ts    GET → bounds + center, or 404
@@ -317,16 +373,25 @@ web/
 ### 7.3 Core types
 
 ```ts
-type RiskType = 'air' | 'fire' | 'heat';
+type RiskType = 'air' | 'fire' | 'heat' | 'sea';
 type Level = 'low' | 'elevated' | 'high' | 'severe';
 type PlaceKind = 'bus_stop' | 'park' | 'playground' | 'school';
 
-interface PinSummary { slug: string; name: string; kind: PlaceKind; lat: number; lon: number; level: Level }
-interface Cluster    { lat: number; lon: number; count: number; level: Level }
+interface PinSummary { slug: string; name: string; kind: PlaceKind; lat: number; lon: number; level: Level; sea: boolean }
+interface Cluster    { lat: number; lon: number; count: number; level: Level; sea: boolean }
 
 interface PlaceDetail {
   slug: string; name: string; kind: PlaceKind; lat: number; lon: number; zip: string | null;
-  risks: { type: RiskType; level: Level; detail: string; soWhat: string; source: Source }[];
+  risks: {
+    type: RiskType; level: Level | null;   // null only for 'sea'
+    detail: string; soWhat: string; source: Source;
+    trend: { text: string; now: number; future: number; source: Source } | null;
+  }[];
+}
+
+interface Projection {                    // from meta
+  scenario: string; baselinePeriod: string; futurePeriod: string;
+  sea: { scenario: string; rise: string; floodCondition: string; period: string };
 }
 ```
 
@@ -335,12 +400,15 @@ interface PlaceDetail {
 - **Selecting a place:** clicking a pin navigates to `/places/[slug]`; the layout's map persists and the panel swaps. Direct loads of a share URL server-render the panel; the map centers on the place on hydration.
 - **Risk card order (consequence first):** each `RiskCard` reads top-down as
   1. the **So What?** sentence (`soWhat`), the most prominent text on the card;
-  2. the specific risk (`detail`);
-  3. the level, as a text label ("High"), with colour as reinforcement only, never the sole signal;
-  4. the source line (name, linked).
+  2. the **trend** line, when present, visually distinct from today's text (e.g. its own row with a "Projected" label) so present and future are never confused;
+  3. the specific risk (`detail`);
+  4. the level, as a text label ("High"), with colour as reinforcement only, never the sole signal;
+  5. the source line (name, linked), plus, when a trend is shown, the projection's source, scenario and periods (e.g. "Projection: Cal-Adapt LOCA2, {scenario}, {baseline} vs. {future}").
 
-  The consequence leads because it is the product's thesis: the metric supports the sentence, not the other way round. This order holds on the live site, in OG images, and in the demo video.
-- **Filters:** `?types=air,heat` in the URL; applied to pins, clusters, nearest search; preserved in share links. Default: all three.
+  The consequence leads because it is the product's thesis: the metric supports the sentence, not the other way round. The trend follows immediately because "and it's getting worse" is what makes it a climate story. This order holds on the live site, in OG images, and in the demo video. The level label describes today only; the card must not imply the projection changed it.
+- **Panel order:** today's cards (air, heat, fire) first, sorted by level; the sea-level-rise card last. Its level slot shows a **"Projected"** label instead of a level, and it uses the same visual treatment as trend lines. A place with no elevated findings today shows its `low` cards collapsed into one line ("Not flagged today for air, heat or wildfire") above the sea-level-rise card, so the projection isn't mistaken for today's finding.
+- **Pins:** a place visible only through `sea_flag` uses a distinct "projected" pin style (e.g. outlined, not filled) and the legend explains it. A place with both today's findings and `sea_flag` uses its level colour plus a small projected-flooding marker. Neither relies on colour alone.
+- **Filters:** `?types=air,heat,fire,sea` in the URL; applied to pins, clusters, nearest search; preserved in share links. Default: all four.
 - **Entry flow:**
   1. Start panel offers **Use my location**, **zip search**, and **Show me an example**.
   2. Geolocation inside LA County → center there. Outside LA County, denied, or timed out → "So What? covers LA County — here's a place to start" → fly to the featured starting spot.
@@ -399,12 +467,18 @@ Before any feature work: a hello-world Next.js app on Vercel with the custom dom
 
 Fails the build (non-zero exit; nothing published) if any of:
 - a place lacks `tract_id`, `cell_row`, or `cell_col`, or its cell doesn't match `floor(lat|lon / CELL_SIZE_DEG)`;
-- a place lacks a `risks` row for any of the three types, or its rank columns disagree with `risks.level`;
+- a place lacks a `risks` row for air, fire or heat, or its rank columns disagree with `risks.level`;
+- a `sea` row exists for a place with `sea_flag = 0`, or is missing for a place with `sea_flag = 1`;
+- any sea row exists but `meta` lacks `sea_scenario`, `sea_rise`, `sea_flood_condition`, or `sea_period`;
+- `sea_flag = 1` for a place outside the CoSMoS extent's overall bounds (catches a reprojection mistake);
 - a `risks` row references a missing source;
 - duplicate slugs or source keys;
 - a `showcase.yaml` entry references a nonexistent `source_key` or lacks a citation;
 - a required template `(type, kind, level ≥ elevated)` is missing;
-- any rendered `so_what` exceeds 30 words (§5.5);
+- any rendered `so_what` exceeds 30 words, or any `trend` exceeds 25 words (§5.5);
+- a `trend` exists for a risk type with no adopted projection source, or a `trend` claims an increase when `trend_future − trend_now` is below the meaningful-change threshold;
+- any `trend` exists but `meta` lacks `projection_scenario`, `projection_baseline_period`, or `projection_future_period`;
+- a place's rank columns differ from what today's data alone would produce (projections must not affect levels);
 - no showcase entry is marked as the featured place, or it fails the featured-place criteria (§5.5);
 - row counts fall outside expected ranges (configured in `validate.py`);
 - any slug in `data/published_slugs.txt` is missing (§5.2).
@@ -415,7 +489,9 @@ Fails the build (non-zero exit; nothing published) if any of:
 - `geometry.py`: inside/outside convex and concave polygons; point exactly on an edge and on a vertex (documented, deterministic rule); polygon with a hole; multipolygon; bbox prefilter never excludes a true hit.
 - `grid.py`: points exactly on cell boundaries; negative longitudes (`floor`, not truncation).
 - `score.py`: values exactly at, just below, and just above each threshold.
-- `render.py`: every template renders with sample values; showcase overrides win.
+- `render.py`: every template renders with sample values; showcase overrides win; trend values round to whole days; below the meaningful-change threshold, `trend` is NULL.
+- Sea-level-rise join: a hand-built coastline-like multipolygon with an inlet and an island (hole) flags the right points; places far inland are never tested (prefilter).
+- Projection join: points on grid-cell boundaries and at the grid's edges land in exactly one cell, using the same test vectors approach as `grid.py`; a place in a cell with no value gets a NULL trend.
 - Slug generation is deterministic and stable across runs.
 - `validate.py`: each failure condition triggers on a crafted bad input.
 
@@ -424,7 +500,7 @@ Fails the build (non-zero exit; nothing published) if any of:
 `@tursodatabase/serverless` is remote-only, so tests pass `queries.ts` a Drizzle instance over a *local* driver on the fixture file — `drizzle-orm/tursodatabase-database` (`@tursodatabase/database`, Turso's embedded engine) if available on the rc channel, else `drizzle-orm/libsql` with a `file:` URL. Chosen in M0. This works because every query takes `db` as an argument instead of importing the production client.
 - `geo.ts`: haversine vs. known distances; bbox parsing/validation; cell math matching `grid.py` on shared test vectors; `CELL_SIZE_DEG` equals `meta.cell_size_deg`.
 - `queries.ts`:
-  - viewport query: edge cells overhanging the viewport are excluded; type filters; low-risk hiding.
+  - viewport query: edge cells overhanging the viewport are excluded; type filters; low-risk hiding; a sea-only place is visible with `sea` selected and hidden without it; `types=sea` alone and a single today type both build a valid clause.
   - clusters: coarse grouping is correct across negative columns (floor division).
   - nearest: the **trap case** — the first non-empty box contains a point, but the true nearest lies just outside that box — returns the true nearest; the empty-until-cap case returns `null`.
 - Schema drift guard (§7.2).
@@ -439,7 +515,7 @@ Fails the build (non-zero exit; nothing published) if any of:
 | Milestone | Deliverable |
 |---|---|
 | **M0 — Deployment spike** | §8.3. |
-| **M1 — Data spike** | Every source in §5.1 confirmed (license, format, projection, vintage); heat source chosen; thresholds sanity-checked against real distributions; **featured place chosen** (§5.5). |
+| **M1 — Data spike** | Every source in §5.1 confirmed (license, format, coordinate reference system, vintage); heat-island data confirmed; **climate projection confirmed**: grid resolution and format, extreme-heat-day definition, SSP2-4.5 available, baseline and mid-century periods; wildfire projection adopted or dropped; **sea level rise confirmed**: OPC Intermediate mid-century amount for the LA tide gauges, the matching CoSMoS increment, and whether "flooded" includes storm conditions; count of flagged places by kind (if almost none, revisit before M2); meaningful-change threshold set; thresholds sanity-checked against real distributions; **featured place chosen** (§5.5). |
 | **M2 — Pipeline** | Full ETL with tests; featured place's showcase entry written and cited; valid `data/sowhat-YYYYMMDD.db`; first publish to Turso. |
 | **M3 — Map + API** | Viewport pins, server-side clusters, filters, nearest search. |
 | **M4 — Place pages** | Server-rendered panels, OG metadata and images, not-found. |
@@ -448,8 +524,8 @@ Fails the build (non-zero exit; nothing published) if any of:
 | **M7 — Ship** | Production deploy, README (≥ 750 words), demo video, `submit50`. |
 
 **Outcome tiers (CS50's "good / better / best"):**
-- **Good:** map of LA County with pins for all four place kinds, three risk types, template text, shareable place pages, deployed.
-- **Better:** + geolocation/zip entry flow, empty-viewport nearest search, server-side clusters, showcase text, OG images.
+- **Good:** map of LA County with pins for all four place kinds, today's three risk types, the heat trend line, template text, shareable place pages, deployed. (The trend line is in Good because without it the app isn't about climate change.)
+- **Better:** + sea level rise, geolocation/zip entry flow, empty-viewport nearest search, server-side clusters, showcase text, OG images.
 - **Best:** + polished About/method page, Playwright suite, thresholds refined by distribution analysis.
 
 ## 13. Academic honesty and AI use
@@ -471,6 +547,11 @@ Fails the build (non-zero exit; nothing published) if any of:
 | Fully static site | No backend routing or database, dropping two of the three CS50 pillars. |
 | LLM-generated "So What?" text | Hallucination risk, cost, and harder to defend; templates + hand-written showcase instead. |
 | Zip codes as the unit | Too coarse and reads like a report card; places are what make "So What?" land. |
+| Projections as the core of each card | The original idea. Projection grids are a few km across, so neighboring places would mostly share one number and the pins would stop saying much; every card would need a scenario and time horizon; and a 2050 number can't be checked against experience or acted on today. Kept as one supporting trend line instead. |
+| Today's conditions only | Immediate and fine-grained, but air pollution and urban heat islands are environmental hazards, not climate *change*. Without the trend line it isn't a climate app. |
+| Giving sea level rise a "today" core (e.g. FEMA coastal flood zones) | A second flood dataset, and FEMA zones are insurance and regulatory maps rather than conditions people experience. The other three risks already provide each coastal place's present-day content. |
+| Scoring sea level rise into levels (e.g. by which increment first floods a place) | Would make levels mean "today" for three risks and "future" for one. A flag with its own filter keeps levels honest. |
+| Two emissions scenarios on each card | Shows that choices matter, but doubles the numbers on a card meant to be read in seconds. One scenario on the card; the About page explains the others. |
 | `drizzle-orm/libsql` + `@libsql/client` (stable Drizzle) | Turso now calls the libSQL SDKs legacy; its recommended SDK is `@tursodatabase/serverless` (fetch-only, no native deps), supported via `drizzle-orm/tursodatabase-serverless`. That driver is currently in Drizzle's release candidate, so exact versions are pinned and the libsql driver remains the fallback — a change confined to `lib/db/client.ts`. |
 | Drizzle-owned schema with migrations | The pipeline rebuilds the db from scratch each time; migrations add nothing. `schema.sql` stays the single source of truth, and Drizzle introspects it. |
 
@@ -479,4 +560,8 @@ Fails the build (non-zero exit; nothing published) if any of:
 - Risk levels are derived from area-level data (census tracts, hazard zones) applied to points; they describe the surrounding area, not site-specific measurements.
 - CalEnviroScreen uses 2010 tract boundaries; ZCTAs approximate USPS zip codes.
 - Data is a snapshot as of the build date in `meta`.
+- Trend lines are climate-model projections for one emissions scenario, averaged over a grid cell of a few kilometres. They describe the surrounding area's likely direction, not a forecast for a specific place or year, and other scenarios give different values.
+- "Extreme-heat days" follow the projection source's definition, which may be relative to each area's own historical temperatures; counts show change over time more reliably than they compare one area with another.
+- Air quality has no projection; its card describes present-day conditions only.
+- Sea-level-rise flags use one scenario and one flood-extent layer. A place outside the flagged area can still flood under higher scenarios, larger storms, or later dates. Rising groundwater and erosion are not included.
 - Not an official hazard assessment; links to authoritative sources for decisions.
