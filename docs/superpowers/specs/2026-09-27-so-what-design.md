@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-27 (rev. 11, 2026-09-28: findings from the [UX evaluation](../../evaluation/2026-09-28-so-what-ux-evaluation.md) — an "Unflagged" switch on every places-list heading (and in the map legend) so every place is reachable, wireframed as idea #10 on the [idea board](../../wireframes/wireframes-glyphs-thumbnails.html), start page `<h1>` and intro, data years on `detail` lines and "current data" instead of "today" in the UI, one set of risk names ("Air pollution"), phone map taps open the panel, header with home link and zip search, back link after a direct load, cluster clicks, legend placement, "Show 20 more", location privacy, share button, share images keep the scope. Rev. 10: states and edge cases from the [resilience review](../../resilience/2026-09-28-so-what-states-and-edge-cases.md) — zero selected types and oversize bboxes handled, cluster fallback over 1,000 pins, selected marker, app-caused map moves don't refresh the list, first screen, county outline test, name normalization and disambiguation, prerendered showcase pages, loading/empty/error states (§7.6). Rev. 9: place panel decisions from the [wireframes](../../wireframes/wireframes-place-panel.html) — signal-meter level glyph, risk glyphs, at-a-glance row, low cards with a trend stay expanded, one places list per page, "About this data" on phones. Rev. 8: accessibility — "Places near here" list and N-nearest search, level in card headings, pin glyphs, focus/announcement/reflow rules, WCAG 2.2 AA target, English only; from the [accessibility review](../../accessibility/2026-09-28-so-what-accessibility-review.md). Rev. 7: sea level rise added as a projection-only risk; intermediate emissions scenario. Rev. 6: today's conditions as the core of each card, plus one projected-change line for risks climate change is making worse. Rev. 5: featured place chosen in M1, consequence-first risk cards, So What? length cap — from [grader's first 30 seconds](../../journeys/2026-09-28-grader-first-30-seconds.md))
 **Status:** Draft, awaiting review
-**Context:** CS50x final project (due before 2027-06-30 4:59 PM PDT), also deployed publicly on a custom domain, on free tiers.
+**Context:** CS50x final project (due before 2027-06-30 4:59 PM PDT), also deployed publicly on a subdomain of the author's personal domain (a dedicated domain may come later, §8.1), on free tiers.
 
 ---
 
@@ -75,7 +75,7 @@
                       Turso Cloud database (free tier, read-only token for the app)
                               ▲
                               │  Drizzle ORM + @tursodatabase/serverless
-                      web/ (Next.js App Router on Vercel Hobby) ◄── custom domain (HTTPS)
+                      web/ (Next.js App Router on Vercel Hobby) ◄── subdomain (HTTPS)
 ```
 
 Two halves with one contract between them: **`pipeline/schema.sql`** (§5.3). The pipeline creates and fills the database; the app only reads it.
@@ -578,10 +578,11 @@ Every state below, with what the user can do in it, is in the [resilience review
 
 ### 8.1 Hosting
 
-- **App:** Vercel Hobby (non-commercial use), project root directory `web/`, custom domain via Vercel.
+- **App:** Vercel Hobby (non-commercial use), project root directory `web/`, served on a subdomain of the author's personal domain: a `CNAME` record to Vercel, which issues the HTTPS certificate. If the personal domain has `CAA` records, they must allow Let's Encrypt.
+- **Site URL in one place.** Every absolute URL the app writes (Open Graph and Twitter tags, share links, `metadataBase`) comes from `NEXT_PUBLIC_SITE_URL`, never a hard-coded host. If the site later moves to a dedicated domain, the subdomain stays attached to the project and **permanently redirects** (308) every path to the new host, so share links already posted keep working, as §5.2 promises for slugs.
 - **Database:** Turso free tier — 100 databases, 5 GB storage, 500M rows read/month; queries fail with `BLOCKED` once a quota is exceeded. Databases are files, not processes: they never sleep and have no cold start. Vercel Functions region set to match the database's region (e.g. `pdx1` ↔ `aws-us-west-2`).
 - **Rows read is the budget that matters.** Turso counts rows *scanned*, not rows returned, so an unindexed viewport query over ~15k places would cost ~15k reads per map pan. The grid index (§6) keeps zoomed-in pans to a few hundred reads — the data structure directly protects the free quota. Zoomed-out cluster queries (§6.3) still scan every place in view (up to ~15k at county zoom, i.e. ~33k such views/month on the free quota — ample for demo traffic). If M3 measurements show otherwise, the pipeline precomputes a `cluster_summaries` table per zoom factor. `/api/health` uses `SELECT value FROM meta WHERE key = 'row_count_places'` (1 row read), not `count(*)`.
-- **Env vars:** `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` (read-only token), `NEXT_PUBLIC_TILE_KEY`.
+- **Env vars:** `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` (read-only token), `NEXT_PUBLIC_TILE_KEY`, `NEXT_PUBLIC_SITE_URL` (the subdomain's `https://` origin).
 - **Monitoring (optional):** UptimeRobot on `/api/health` for alerts (not keep-alive).
 
 ### 8.2 Publishing a data build
@@ -596,7 +597,7 @@ The free plan allows 100 databases, so blue/green costs nothing extra.
 
 ### 8.3 M0 deployment spike (retire platform risk first)
 
-Before any feature work: a hello-world Next.js app on Vercel with the custom domain, reading a tiny Turso database (created via `turso db import`) through Drizzle (a `places` table with the cell index), plus `/api/health`. Verify: `drizzle-orm@rc` + `@tursodatabase/serverless` works against Turso Cloud (including the `sql` template and multi-arg `max`); `drizzle-kit@rc pull` introspects the imported db; the same queries run in Vitest over a local driver (§11); viewport-query latency with Functions and database in the same region. Tile provider chosen.
+Before any feature work: a hello-world Next.js app on Vercel on the subdomain (with `NEXT_PUBLIC_SITE_URL` set and an OG tag using it), reading a tiny Turso database (created via `turso db import`) through Drizzle (a `places` table with the cell index), plus `/api/health`. Verify: `drizzle-orm@rc` + `@tursodatabase/serverless` works against Turso Cloud (including the `sql` template and multi-arg `max`); `drizzle-kit@rc pull` introspects the imported db; the same queries run in Vitest over a local driver (§11); viewport-query latency with Functions and database in the same region. Tile provider chosen.
 
 ## 9. Security
 
