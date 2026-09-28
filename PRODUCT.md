@@ -2,7 +2,7 @@
 
 <!-- impeccable:product-schema 1 -->
 
-Source of truth for behavior, data and copy is the [design spec](docs/superpowers/specs/2026-09-27-so-what-design.md) (rev. 11) and the [voice doc](docs/content/2026-09-28-so-what-voice-and-templates.md). This file records the durable product facts design work must respect; where they disagree, the spec wins and this file is updated.
+Source of truth for behavior, data and copy is the [design spec](docs/superpowers/specs/2026-09-27-so-what-design.md) (rev. 12) and the [voice doc](docs/content/2026-09-28-so-what-voice-and-templates.md). This file records the durable product facts design work must respect; where they disagree, the spec wins and this file is updated.
 
 ## Platform
 
