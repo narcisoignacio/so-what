@@ -245,7 +245,7 @@ ok
 ```
 Then run `git status --short`. It should show `.gitignore` and the three `pipeline/` files, and no `data/` entries.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add .gitignore pipeline/schema.sql pipeline/seed_m0.sql pipeline/build_m0.sh
@@ -273,7 +273,7 @@ git commit -m "feat(pipeline): add schema and M0 spike build"
   - `buildFixture(options?: { seed?: boolean }): Promise<{ client: Database; db: TursoDatabaseDatabase }>` comes from `web/tests/fixtures/build-fixture.ts`. `seed` defaults to `true`.
   - pnpm scripts: `test`, `test:watch`, `typecheck`, `db:pull`.
 
-- [ ] **Step 1: Install pinned dependencies**
+- [x] **Step 1: Install pinned dependencies**
 
 Run in `web/`:
 ```bash
@@ -282,7 +282,7 @@ pnpm add --save-exact -D drizzle-kit@1.0.0-rc.4 @tursodatabase/database@0.7.2 vi
 ```
 Expected: installs with no "ignored build scripts" warning for the Turso packages. If pnpm does warn about `@tursodatabase/database`, add `'@tursodatabase/database': true` under `allowBuilds` in `web/pnpm-workspace.yaml` and run `pnpm install` again.
 
-- [ ] **Step 2: Add scripts to `web/package.json`**
+- [x] **Step 2: Add scripts to `web/package.json`**
 
 Replace the `scripts` block with:
 
@@ -299,7 +299,7 @@ Replace the `scripts` block with:
   },
 ```
 
-- [ ] **Step 3: Write `web/vitest.config.mts`**
+- [x] **Step 3: Write `web/vitest.config.mts`**
 
 ```ts
 import { fileURLToPath } from 'node:url';
@@ -316,7 +316,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 4: Write `web/drizzle.config.ts`**
+- [x] **Step 4: Write `web/drizzle.config.ts`**
 
 This config is used only by `drizzle-kit pull`. By default it reads the local spike build. In Task 5 you'll run it against Turso Cloud by exporting the env vars first.
 
@@ -334,7 +334,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 5: Keep generated output out of lint and out of git where it isn't wanted**
+- [x] **Step 5: Keep generated output out of lint and out of git where it isn't wanted**
 
 In `web/eslint.config.mjs`, add `"src/lib/db/generated/**",` to the `globalIgnores([...])` list, after `"next-env.d.ts",`.
 
@@ -345,7 +345,7 @@ Append to `web/.gitignore`:
 /src/lib/db/generated/*/
 ```
 
-- [ ] **Step 6: Write the fixture builder `web/tests/fixtures/build-fixture.ts`**
+- [x] **Step 6: Write the fixture builder `web/tests/fixtures/build-fixture.ts`**
 
 ```ts
 import { readFileSync } from 'node:fs';
@@ -368,7 +368,7 @@ async function buildFixture(options: { seed?: boolean } = {}) {
 export { buildFixture };
 ```
 
-- [ ] **Step 7: Write the failing drift-guard test `web/tests/schema-drift.test.ts`**
+- [x] **Step 7: Write the failing drift-guard test `web/tests/schema-drift.test.ts`**
 
 ```ts
 import { is, sql } from 'drizzle-orm';
@@ -410,17 +410,17 @@ describe('generated Drizzle schema', () => {
 });
 ```
 
-- [ ] **Step 8: Run the test to verify it fails**
+- [x] **Step 8: Run the test to verify it fails**
 
 Run in `web/`: `pnpm test`
 Expected: FAIL. Vite can't resolve `@/lib/db/generated/schema` because the file doesn't exist yet.
 
-- [ ] **Step 9: Generate the schema**
+- [x] **Step 9: Generate the schema**
 
 Run in `web/`: `pnpm db:pull`
 Expected: output ending with `Your schema file is ready ➜ src/lib/db/generated/schema.ts`. `src/lib/db/generated/` should now hold `schema.ts`, `relations.ts` and one timestamped folder, which git ignores. **Don't edit `schema.ts`**, even though some `check(...)` lines look garbled (see "Before you start").
 
-- [ ] **Step 10: Run the tests to verify they pass**
+- [x] **Step 10: Run the tests to verify they pass**
 
 Run in `web/`: `pnpm test && pnpm typecheck && pnpm lint`
 Expected: 6 tests pass (1 table-list test and 5 per-table tests), and typecheck and lint both exit 0. If `column.getSQLType` doesn't exist on rc.4, use `column.columnType` and map `SQLiteInteger`→`integer`, `SQLiteText`→`text` and `SQLiteReal`→`real` in the test. Note the change in the findings doc.

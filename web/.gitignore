@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# drizzle-kit pull writes a migration folder next to schema.ts; the project has no migrations (spec §7.2)
+/src/lib/db/generated/*/
