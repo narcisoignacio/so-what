@@ -1057,7 +1057,7 @@ curl -s localhost:3000/api/spike/viewport
 ```
 Expected: `{"ok":true,"places":6}` and `{"queryMs":…,"count":4,"region":"local"}`. The count of 4 comes from vermont-sunset, echo-park, grand-park and main-1st. This shows `drizzle-orm@rc`, `@tursodatabase/serverless`, the `sql` template and multi-argument `max` all work against Turso Cloud (§8.3). If the client rejects the `libsql://` URL, change the scheme to `https://` in `.env.local` and record that in the findings doc.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add docs/superpowers/spikes/2026-09-28-m0-findings.md web/src/lib/db/generated
@@ -1078,7 +1078,7 @@ This task is manual and uses the Vercel dashboard and your DNS provider.
 - Consumes: the database region, URL and token (Task 5); `NEXT_PUBLIC_SITE_URL` handling in `web/src/app/layout.tsx` (already committed in `fa3205d`).
 - Produces: `https://$SITE_HOST` serving the app, with `/api/health` live.
 
-- [ ] **Step 1: Pin the Function region to the database's region**
+- [x] **Step 1: Pin the Function region to the database's region**
 
 Create `web/vercel.json`, using the region that matches the database's location from Task 5:
 
@@ -1096,7 +1096,7 @@ git commit -m "chore(web): pin Vercel Functions region"
 git push
 ```
 
-- [ ] **Step 2: Create the Vercel project**
+- [x] **Step 2: Create the Vercel project**
 
 Go to Vercel → Add New → Project, and import `narcisoignacio/so-what` from the GitHub account that owns it. Set **Root Directory** to `web`. The framework preset should say Next.js. Before the first deploy, add these Environment Variables:
 
@@ -1108,7 +1108,7 @@ Go to Vercel → Add New → Project, and import `narcisoignacio/so-what` from t
 
 Deploy. If the build log fails because it can't find pnpm 12, add `ENABLE_EXPERIMENTAL_COREPACK=1` as an env var so Vercel uses the `packageManager` version from `package.json`, then redeploy. Record whether you needed this.
 
-- [ ] **Step 3: Attach the subdomain**
+- [x] **Step 3: Attach the subdomain**
 
 Go to Project → Settings → Domains, add `$SITE_HOST`, and copy the `CNAME` target Vercel shows. At your DNS provider, create the CNAME record for the subdomain. Then check CAA:
 
@@ -1117,7 +1117,7 @@ dig +short CAA "${SITE_HOST#*.}"
 ```
 Expected: either no output, or a list that includes `letsencrypt.org`. If there are CAA records without `letsencrypt.org`, add `0 issue "letsencrypt.org"` (§8.1). Wait until Vercel shows the domain as valid and the certificate as issued.
 
-- [ ] **Step 4: Verify the site, the OG tags and health**
+- [x] **Step 4: Verify the site, the OG tags and health**
 
 ```bash
 curl -sI "https://$SITE_HOST" | head -1
@@ -1133,18 +1133,18 @@ Expected:
 
 Paste one real share of `https://$SITE_HOST` into a link-preview checker, or a private message to yourself, and confirm the image shows.
 
-- [ ] **Step 5: Measure viewport-query latency (spec §8.3)**
+- [x] **Step 5: Measure viewport-query latency (spec §8.3)**
 
 Throw away the first two calls as warm-up, then take 20 samples:
 
 ```bash
 for i in 1 2; do curl -s "https://$SITE_HOST/api/spike/viewport" > /dev/null; done
-for i in $(seq 20); do curl -s "https://$SITE_HOST/api/spike/viewport" | sed -E 's/.*"queryMs":([0-9]+).*/\1/'; done | sort -n | tr '\n' ' '; echo
+for i in $(seq 20); do curl -s "https://$SITE_HOST/api/spike/viewport" | grep -o '"queryMs":[0-9]*' | cut -d: -f2; done | sort -n | tr '\n' ' '; echo
 for i in $(seq 20); do curl -s -o /dev/null -w '%{time_total}\n' "https://$SITE_HOST/api/spike/viewport"; done | sort -n | tr '\n' ' '; echo
 ```
 Expected: two sorted lists of 20 numbers each. The median is the average of the 10th and 11th values. Record the median and maximum of the database query time (`queryMs`, measured inside the Function) and of the full request (`time_total`, measured from your machine). Explain any outliers in the findings doc. If the median `queryMs` is well above a same-region round trip (tens of milliseconds), check that `region` matches the database's location before you accept the number.
 
-- [ ] **Step 6: Record and commit**
+- [x] **Step 6: Record and commit**
 
 In the findings doc, fill in **Vercel** (project root, region, whether the corepack env var was needed, the domain and CAA result) and **Latency** (the numbers from Step 5, with the date).
 
