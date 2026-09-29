@@ -1,2 +1,9 @@
 .agents
 .claude
+.DS_Store
+
+# pipeline output (spec §4)
+data/raw/
+data/sowhat-*.db
+data/sowhat-*.db-wal
+data/sowhat-*.db-shm
