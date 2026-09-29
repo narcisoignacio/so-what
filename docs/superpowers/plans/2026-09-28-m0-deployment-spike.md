@@ -724,7 +724,7 @@ export {
 Run in `web/`: `pnpm test && pnpm typecheck && pnpm lint`
 Expected: every test passes (6 drift, 4 geo, 8 queries), and typecheck and lint exit 0.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add web/src/lib/geo.ts web/src/lib/db/queries.ts web/tests/geo.test.ts web/tests/queries.test.ts
@@ -753,7 +753,7 @@ Read `web/node_modules/next/dist/docs/01-app/01-getting-started/15-route-handler
   - `GET /api/health` → `200 { ok: true, places: number }` or `503 { ok: false }`.
   - `GET /api/spike/viewport` → `200 { queryMs: number, count: number, region: string }` or `503 { ok: false }`. Throwaway; removed in Task 8.
 
-- [ ] **Step 1: Write the failing client test `web/tests/client.test.ts`**
+- [x] **Step 1: Write the failing client test `web/tests/client.test.ts`**
 
 ```ts
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -772,7 +772,7 @@ describe('getDb', () => {
 });
 ```
 
-- [ ] **Step 2: Write the failing health tests `web/tests/health.test.ts`**
+- [x] **Step 2: Write the failing health tests `web/tests/health.test.ts`**
 
 ```ts
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -816,12 +816,12 @@ describe('GET /api/health', () => {
 });
 ```
 
-- [ ] **Step 3: Run to verify they fail**
+- [x] **Step 3: Run to verify they fail**
 
 Run in `web/`: `pnpm test tests/client.test.ts tests/health.test.ts`
 Expected: FAIL. `@/lib/db/client` and `@/app/api/health/route` can't be resolved.
 
-- [ ] **Step 4: Write `web/src/lib/db/client.ts`**
+- [x] **Step 4: Write `web/src/lib/db/client.ts`**
 
 ```ts
 import { drizzle } from 'drizzle-orm/tursodatabase-serverless';
@@ -831,6 +831,13 @@ import type { Db } from '@/lib/db/queries';
 // so `next build` works without database credentials.
 let db: Db | undefined;
 
+/**
+ * Initializes and retrieves a singleton instance of the Drizzle database connection.
+ *
+ * Uses lazy initialization (created on first use) to ensure that build processes
+ * (like `next build`) can execute successfully without requiring database credentials
+ * in the environment.
+ */
 function getDb(): Db {
   if (db) {
     return db;
@@ -847,13 +854,16 @@ function getDb(): Db {
 export { getDb };
 ```
 
-- [ ] **Step 5: Write `web/src/app/api/health/route.ts`**
+- [x] **Step 5: Write `web/src/app/api/health/route.ts`**
 
 ```ts
 import { getDb } from '@/lib/db/client';
 import { getPlaceCount } from '@/lib/db/queries';
 
-// Uptime check (spec §7.1, §8.1): one row read; 503 when the database can't be reached (spec §10.1).
+/**
+ * Uptime check (spec §7.1, §8.1): one row read;
+ * 503 when the database can't be reached (spec §10.1).
+ */
 async function GET() {
   try {
     const places = await getPlaceCount(getDb());
@@ -867,12 +877,12 @@ async function GET() {
 export { GET };
 ```
 
-- [ ] **Step 6: Run to verify they pass**
+- [x] **Step 6: Run to verify they pass**
 
 Run in `web/`: `pnpm test`
 Expected: every test passes (6 drift, 4 geo, 8 queries, 1 client, 3 health).
 
-- [ ] **Step 7: Write the latency probe `web/src/app/api/spike/viewport/route.ts`**
+- [x] **Step 7: Write the latency probe `web/src/app/api/spike/viewport/route.ts`**
 
 It takes no input, which is why it has no validation. Task 8 deletes it.
 
@@ -900,16 +910,16 @@ async function GET() {
 export { GET };
 ```
 
-- [ ] **Step 8: Document the env vars**
+- [x] **Step 8: Document the env vars**
 
 Create `web/.env.example`:
 
 ```bash
 # Turso Cloud database for the current data build (spec §8.1, §8.2). The token must be read-only.
-TURSO_DATABASE_URL=libsql://<database>-<org>.turso.io
+TURSO_DATABASE_URL="libsql://<database>-<org>.turso.io"
 TURSO_AUTH_TOKEN=
 # The site's https:// origin; every absolute URL comes from here (spec §8.1).
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 # Map tile provider key, domain-restricted (spec §7.4, §9). Chosen in Task 7.
 NEXT_PUBLIC_TILE_KEY=
 ```
@@ -920,12 +930,12 @@ Append to `web/.gitignore`, directly under the `.env*` line:
 !.env.example
 ```
 
-- [ ] **Step 9: Verify the build works without any env vars**
+- [x] **Step 9: Verify the build works without any env vars**
 
 Run in `web/`: `env -u TURSO_DATABASE_URL -u TURSO_AUTH_TOKEN -u NEXT_PUBLIC_SITE_URL pnpm build`
 Expected: the build succeeds, and the route list shows `/api/health` and `/api/spike/viewport` as dynamic (`ƒ`), not static.
 
-- [ ] **Step 10: Run the full check and commit**
+- [x] **Step 10: Run the full check and commit**
 
 Run in `web/`: `pnpm test && pnpm typecheck && pnpm lint`
 Expected: all pass.
@@ -951,7 +961,7 @@ This task is manual and needs your Turso account. Record every result in the fin
 - Consumes: `data/sowhat-m0.db` (Task 1), the `db:pull` script (Task 2), both routes (Task 4).
 - Produces: a Turso database `$TURSO_DB` in a known region, its `libsql://` URL, and a read-only token. Task 6 uses these.
 
-- [ ] **Step 1: Start the findings doc**
+- [x] **Step 1: Start the findings doc**
 
 Create `docs/superpowers/spikes/2026-09-28-m0-findings.md`:
 
@@ -990,12 +1000,12 @@ Spec: [§8.3](../specs/2026-09-27-so-what-design.md). Plan: [M0 plan](../plans/2
 ## Tile provider
 ```
 
-- [ ] **Step 2: Pick the database's region**
+- [x] **Step 2: Pick the database's region**
 
 Run: `turso auth whoami && turso group list`
 Expected: your account, plus at least one group with its location. The best choice is `aws-us-west-2` (Oregon), the AWS region closest to LA, which maps to Vercel's `pdx1`. If the default group is somewhere else, try `turso group create sowhat --location aws-us-west-2`. If the free plan refuses a new group, keep the existing group and use its region in Task 6. Common mappings: `aws-us-west-2`→`pdx1`, `aws-us-east-1`→`iad1`, `aws-us-east-2`→`cle1`.
 
-- [ ] **Step 3: Import the spike database**
+- [x] **Step 3: Import the spike database**
 
 Run from the repo root: `turso db import --help`. Confirm the flag for choosing a group, then:
 
@@ -1006,7 +1016,7 @@ turso db show "$TURSO_DB"
 ```
 Expected: a database named `sowhat-m0`, named after the file (§8.2), with its URL and location printed. Note the location in the findings doc under **Turso**.
 
-- [ ] **Step 4: Mint a read-only token and smoke-test it over HTTP**
+- [x] **Step 4: Mint a read-only token and smoke-test it over HTTP**
 
 ```bash
 export TURSO_DATABASE_URL="$(turso db show "$TURSO_DB" --url)"
@@ -1021,7 +1031,7 @@ curl -s "$HTTP_URL/v2/pipeline" -H "Authorization: Bearer $TURSO_AUTH_TOKEN" -H 
 ```
 Expected: the first response contains `"value":"6"`. The second contains an error (the token is read-only) and deletes nothing. **If the delete succeeds, stop.** The token isn't read-only, which breaks §9. Rebuild and re-import before going on. Record both results in the findings doc.
 
-- [ ] **Step 5: Verify `drizzle-kit pull` against Turso Cloud**
+- [x] **Step 5: Verify `drizzle-kit pull` against Turso Cloud**
 
 Run in `web/` (in the same shell, so the exports from Step 4 apply):
 ```bash
@@ -1030,7 +1040,7 @@ git diff --stat -- src/lib/db/generated/
 ```
 Expected: the pull succeeds, and `git diff` shows no change to `schema.ts` or `relations.ts`. The remote database introspects the same as the local file. If there is a diff, record it in the findings doc. If the diff is only in `check(...)` text, commit the remote version, since production reads from it.
 
-- [ ] **Step 6: Run the app locally against Turso Cloud**
+- [x] **Step 6: Run the app locally against Turso Cloud**
 
 Create `web/.env.local` (git ignores it). Use the real values from Step 4:
 
