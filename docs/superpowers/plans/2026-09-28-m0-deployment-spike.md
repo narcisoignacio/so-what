@@ -1221,7 +1221,7 @@ git commit -m "docs(spike): choose tile provider"
 - Consumes: every finding from Tasks 2 and 5–7.
 - Produces: a spec that matches reality, so M1 and later start from correct paths and choices.
 
-- [ ] **Step 1: Remove the latency probe**
+- [x] **Step 1: Remove the latency probe**
 
 The latency numbers are recorded, and the route adds a public endpoint that costs row reads. Git history keeps it if M3 needs to measure again.
 
@@ -1231,7 +1231,7 @@ git rm web/src/app/api/spike/viewport/route.ts
 Run in `web/`: `pnpm test && pnpm typecheck && pnpm lint && pnpm build`
 Expected: all pass, and the build's route list no longer includes `/api/spike/viewport`.
 
-- [ ] **Step 2: Update the spec to rev. 13**
+- [x] **Step 2: Update the spec to rev. 13**
 
 Make these edits in `docs/superpowers/specs/2026-09-27-so-what-design.md`:
 - **Header:** add `Rev. 13: M0 findings — src/ layout, generated schema path, local test driver, tile provider, function region.` to the start of the revision notes.
@@ -1243,11 +1243,11 @@ Make these edits in `docs/superpowers/specs/2026-09-27-so-what-design.md`:
 - **§9:** replace "Tile key restricted to the production domain, the project's Vercel preview domains, and localhost" with "No tile key ships to the browser; tiles are authorized by domain (production) and are open on localhost."
 - **§11:** change `drizzle-orm/tursodatabase-database` to `drizzle-orm/tursodatabase/database`, and "Chosen in M0" to "Chosen in M0: the embedded engine, opened with `connect(':memory:')`".
 
-- [ ] **Step 3: Finish the findings doc**
+- [x] **Step 3: Finish the findings doc**
 
 Add a short **Open questions for later milestones** section. List anything M0 left unresolved, such as a region mismatch you accepted, latency outliers, or a key restriction that's only enforced in browsers. If there are none, say so.
 
-- [ ] **Step 4: Commit and push**
+- [x] **Step 4: Commit and push**
 
 ```bash
 git add docs/superpowers/specs/2026-09-27-so-what-design.md docs/superpowers/spikes/2026-09-28-m0-findings.md
