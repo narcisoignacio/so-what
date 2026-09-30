@@ -1,6 +1,7 @@
 .agents
 .claude
 .DS_Store
+notes/
 
 # pipeline output (spec §4)
 data/raw/
