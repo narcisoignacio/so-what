@@ -56,7 +56,7 @@ Success means:
 - **Unflagged switch** (off by default) on every places-list heading and in the legend; unflagged places are never hidden without saying so.
 - **Text limits:** `so_what` ≤ 30 words, trend line ≤ 25 words, enforced by the pipeline.
 - **Out of scope:** accounts or user data, areas outside LA County, inland flooding, languages other than English, LLM-generated text, area-shading (choropleth) views, live data.
-- **Undecided:** tile provider (chosen in M0); CVD-safe pin palette, typography and overall visual direction (M3 visual design); featured place (end of M1); wildfire trend line (M1).
+- **Undecided:** tile provider (chosen in M0); CVD-safe pin palette, typography and overall visual direction (M3a visual design); featured place (end of M1); wildfire trend line (M1).
 
 ## Brand Commitments
 
