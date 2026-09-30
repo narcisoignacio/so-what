@@ -111,7 +111,7 @@ Heading with the level badge ("Heat — High") → So What? sentence → trend l
 
 ### 4.4 A clean zoom-out
 
-Beat 5 needs the cluster rendering (M3) to look settled when zooming out: no pin flicker and no half-loaded tiles. The dashed sea-level pins must be visible at the zoom level the camera passes through, or the coastal preview is lost. Record against production, in the same region, after warming the tile cache.
+Beat 5 needs the cluster rendering (M4) to look settled when zooming out: no pin flicker and no half-loaded tiles. The dashed sea-level pins must be visible at the zoom level the camera passes through, or the coastal preview is lost. Record against production, in the same region, after warming the tile cache.
 
 ## 5. Voice-over script
 
@@ -137,7 +137,7 @@ Beat 5 needs the cluster rendering (M3) to look settled when zooming out: no pin
 
 ## 7. How we'll know it works
 
-**Test (cheap, before M7):** Show a rough cut of just 0:00–0:30 to 3–5 people who haven't been to LA. Have at least one watch at 2× and one with sound off. Stop at 0:30 and ask:
+**Test (cheap, before M8):** Show a rough cut of just 0:00–0:30 to 3–5 people who haven't been to LA. Have at least one watch at 2× and one with sound off. Stop at 0:30 and ask:
 
 1. What does this app do?
 2. Name one risk at the place you saw, and who it affects.

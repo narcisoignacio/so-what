@@ -217,7 +217,7 @@ Specified in spec §7.4: fixed data in `web/lib/tips.ts`, keyed by risk type, sh
 - A tip is a verb plus a link. It never repeats the `so_what`.
 - The heat tip is about today (cooling centers), even under a trend line. The trend explains *why* it matters more over time; the tip is what to do this summer.
 - The link text names the organization, so a screen reader announces where the link goes.
-- **Check every URL before M6.** Links from government agencies move. Add them to the `sources` table so they're cited the same way as the data sources.
+- **Check every URL before M7.** Links from government agencies move. Add them to the `sources` table so they're cited the same way as the data sources.
 
 ---
 
@@ -421,7 +421,7 @@ Shown in the list's note area and announced; the map then moves to the nearest f
 ## 11. Pending questions
 
 - **M1 decides:** the extreme-heat-day definition; whether fire gets a trend line and what its metric is; the sea-level-rise amount, CoSMoS layer, and whether `{condition}` is tides or a storm.
-- **Consequence claims need citations too.** The spec cites the *data* on each card, but not claims like "children are more sensitive to heat" or "heat makes it harder for students to learn." Proposal: the About page lists one public-health reference per claim (for example EPA for fine particles, CDC for heat illness, and published research on heat and learning), stored in `sources`. Each claim should be checked before M6. If one can't be supported, cut it. The same applies to the sea-level-rise consequences ("service may be moved", "may close").
+- **Consequence claims need citations too.** The spec cites the *data* on each card, but not claims like "children are more sensitive to heat" or "heat makes it harder for students to learn." Proposal: the About page lists one public-health reference per claim (for example EPA for fine particles, CDC for heat illness, and published research on heat and learning), stored in `sources`. Each claim should be checked before M7. If one can't be supported, cut it. The same applies to the sea-level-rise consequences ("service may be moved", "may close").
   - **Verified 2026-09-28** (each page checked against the claim it supports):
 
     | Claim | Used in | Citation |

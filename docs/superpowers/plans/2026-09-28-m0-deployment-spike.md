@@ -1157,14 +1157,14 @@ git commit -m "docs(spike): record deploy and latency results"
 
 ### Task 7: Choose the tile provider
 
-This is a research and account task. No app code changes, since Leaflet arrives in M3.
+This is a research and account task. No app code changes, since Leaflet arrives in M4.
 
 **Files:**
 - Modify: `docs/superpowers/spikes/2026-09-28-m0-findings.md`
 - Modify: `web/.env.example` (remove `NEXT_PUBLIC_TILE_KEY`, leave a comment saying why)
 
 **Interfaces:**
-- Produces: a chosen provider (Stadia Maps), a raster XYZ tile URL template with no key in it, the required attribution text, and `$SITE_HOST` registered as a Stadia property. M3's `MapView.tsx` uses these.
+- Produces: a chosen provider (Stadia Maps), a raster XYZ tile URL template with no key in it, the required attribution text, and `$SITE_HOST` registered as a Stadia property. M4's `MapView.tsx` uses these.
 
 - [x] **Step 1: Compare the three candidates against the spec's requirements**
 
@@ -1223,7 +1223,7 @@ git commit -m "docs(spike): choose tile provider"
 
 - [x] **Step 1: Remove the latency probe**
 
-The latency numbers are recorded, and the route adds a public endpoint that costs row reads. Git history keeps it if M3 needs to measure again.
+The latency numbers are recorded, and the route adds a public endpoint that costs row reads. Git history keeps it if M4 needs to measure again.
 
 ```bash
 git rm web/src/app/api/spike/viewport/route.ts

@@ -161,7 +161,7 @@ Four questions per step: will they try (motivation), will they see the control (
 
 ### T6. Keyboard and screen reader (the three §11 tasks)
 
-All three pass on paper: the example's heat level and trend in a few heading jumps; zip 90012 and the second list item; the filter count announced. Confirmed in M7 with VoiceOver, as planned.
+All three pass on paper: the example's heat level and trend in a few heading jumps; zip 90012 and the second list item; the filter count announced. Confirmed in M8 with VoiceOver, as planned.
 
 ---
 

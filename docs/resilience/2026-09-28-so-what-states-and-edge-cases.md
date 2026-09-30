@@ -187,7 +187,7 @@ Grouped by the skill's stress categories. Only the cases that apply to this prod
 | Double-clicking "Use my location" or Search. | Two requests; the second may override the first. | Ignore activations while one is in progress. | P3 |
 | Back button after opening several places in a row. | The URL changes and the panel follows; the map doesn't say. | The map recentres on the place the URL names, as it does on a direct load. No list refresh (finding 4). | P2 |
 | Opening a list item that's outside the view. | Not specified whether the map moves. | Pan to it (instant with reduced motion). No list refresh (finding 4). | P1 |
-| Panning with the list half-read by a screen-reader user. | The list refreshes under them. | Focus rule (§2.3). Worth checking in the M7 VoiceOver pass. | P2 |
+| Panning with the list half-read by a screen-reader user. | The list refreshes under them. | Focus rule (§2.3). Worth checking in the M8 VoiceOver pass. | P2 |
 | JavaScript fails or is slow to load. | Place pages are server-rendered and work; the start panel doesn't. | Make "Show me an example" a real link to `/places/{featured_slug}`, and zip search a real `<form method="get">` that the server resolves. The two actions that don't need location then work before hydration, and the example opens instantly. | P3 |
 
 ---
@@ -215,7 +215,7 @@ Run against spec rev. 9, as written. "Fail" means the spec specifies wrong or mi
 | Non-LA zip | Pass (copy to fix) | §2.1 |
 | Card without a trend line | Pass | §2.4 |
 | Place with nothing flagged, reached by link | Pass once finding 3 is fixed | §2.4 |
-| 320px wide, 400% zoom, screen reader, keyboard | Pass on paper | Owned by the accessibility review; confirmed in M7 |
+| 320px wide, 400% zoom, screen reader, keyboard | Pass on paper | Owned by the accessibility review; confirmed in M8 |
 | Reduced motion | Pass | §7.5 |
 
 ---

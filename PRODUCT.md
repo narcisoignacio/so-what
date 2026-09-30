@@ -56,7 +56,7 @@ Success means:
 - **Unflagged switch** (off by default) on every places-list heading and in the legend; unflagged places are never hidden without saying so.
 - **Text limits:** `so_what` ≤ 30 words, trend line ≤ 25 words, enforced by the pipeline.
 - **Out of scope:** accounts or user data, areas outside LA County, inland flooding, languages other than English, LLM-generated text, area-shading (choropleth) views, live data.
-- **Undecided:** tile provider (chosen in M0); CVD-safe pin palette, typography and overall visual direction (visual design pass); featured place (end of M1); wildfire trend line (M1).
+- **Undecided:** tile provider (chosen in M0); CVD-safe pin palette, typography and overall visual direction (M3 visual design); featured place (end of M1); wildfire trend line (M1).
 
 ## Brand Commitments
 
@@ -68,7 +68,7 @@ Success means:
 ## Evidence on Hand
 
 - Public data sources only (CalEnviroScreen 4.0, CAL FIRE hazard zones, CalEPA Urban Heat Island Index, Cal-Adapt LOCA2, OPC sea-level guidance, USGS CoSMoS, Census TIGER/ZCTA, LA Metro GTFS, CDE schools, OpenStreetMap); each confirmed in M1.
-- Written content: templates, tips, messages and verified health-claim citations in the voice doc; ~15–20 hand-written showcase entries to come in M6.
+- Written content: templates, tips, messages and verified health-claim citations in the voice doc; ~15–20 hand-written showcase entries to come in M7.
 - Planning artifacts: [wireframes](docs/wireframes/), [journey](docs/journeys/), [accessibility review](docs/accessibility/), [resilience review](docs/resilience/), [UX evaluation](docs/evaluation/).
 - **Absent, and must not be fabricated:** testimonials, users, usage numbers, press, partner or official endorsements. The site is not an official hazard assessment.
 

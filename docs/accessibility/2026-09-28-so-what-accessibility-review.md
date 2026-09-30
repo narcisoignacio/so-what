@@ -174,7 +174,7 @@ No focus traps. There are no modal dialogs in the design, and none should be add
 ## Testing (proposed additions to spec §11)
 
 - **Automated:** `@axe-core/playwright` scan of the start page, a place page (with and without sea level rise), the About page and the not-found page. Any violation fails the test.
-- **Manual, before M7:** complete three tasks with keyboard only, and again with VoiceOver on macOS and on iOS Safari:
+- **Manual, before M8:** complete three tasks with keyboard only, and again with VoiceOver on macOS and on iOS Safari:
   1. Open the featured example and hear its heat level and trend.
   2. Search zip 90012 and open the second place in the list.
   3. Turn off air and wildfire, and confirm the announced count changes.
