@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visual Directions</title>
+<meta name="description" content="M3a direction board for So What?: three visual worlds rendered on the same place panel and map crop, over the real Stadia tiles.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Board chrome ─────────────────────────────────────────────────────
+   Quiet on purpose: the three worlds are the subject, the board is the
+   wall they hang on. */
+:root {
+  --b-bg: #eceef1;
+  --b-surface: #ffffff;
+  --b-fg: #16181d;
+  --b-muted: #555b66;
+  --b-line: #d3d7de;
+  --b-note: #3d44b8;
+  --b-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --b-bg: #15171b;
+    --b-surface: #1e2127;
+    --b-fg: #eceef2;
+    --b-muted: #a3a9b5;
+    --b-line: #343944;
+    --b-note: #a5aaff;
+  }
+}
+:root[data-theme="dark"] {
+  --b-bg: #15171b; --b-surface: #1e2127; --b-fg: #eceef2;
+  --b-muted: #a3a9b5; --b-line: #343944; --b-note: #a5aaff;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--b-bg);
+  color: var(--b-fg);
+  font: 16px/1.5 var(--b-font);
+}
+.board { max-width: 1320px; margin: 0 auto; padding: 48px 16px 96px; }
+.board h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.1; margin: 0 0 12px; letter-spacing: -0.01em; }
+.board .lede { max-width: 68ch; color: var(--b-muted); margin: 0 0 8px; }
+.board .lede strong { color: var(--b-fg); }
+.b-rules {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1px; background: var(--b-line); border: 1px solid var(--b-line);
+  margin: 32px 0 64px;
+}
+.b-rules > div { background: var(--b-surface); padding: 20px; }
+.b-rules h2 { font-size: 16px; margin: 0 0 6px; }
+.b-rules p { margin: 0; color: var(--b-muted); font-size: 15px; }
+
+.dir { margin: 0 0 96px; }
+.dir-intro {
+  display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 32px; margin-bottom: 24px;
+}
+@media (max-width: 860px) { .dir-intro { grid-template-columns: 1fr; gap: 16px; } }
+.dir-intro h2 { font-size: clamp(24px, 3vw, 32px); line-height: 1.15; margin: 0 0 4px; }
+.dir-intro .source { color: var(--b-muted); margin: 0 0 12px; font-size: 15px; }
+.dir-intro .thesis { margin: 0; max-width: 60ch; }
+.dir-facts { margin: 0; display: grid; gap: 10px; font-size: 15px; }
+.dir-facts dt { font-weight: 650; }
+.dir-facts dd { margin: 0; color: var(--b-muted); }
+.swatches { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.swatches span { width: 28px; height: 28px; border: 1px solid rgba(0,0,0,.15); }
+.risk-line { border-top: 1px solid var(--b-line); padding-top: 10px; }
+
+.frames { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+.frame-wrap { max-width: 100%; }
+.frame-cap { font-size: 13px; color: var(--b-muted); margin: 0 0 8px; }
+.frame-cap b { color: var(--b-fg); font-weight: 600; }
+.scroller { max-width: 100%; overflow-x: auto; box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.08); }
+.frame-desk { width: 1180px; }
+.frame-phone { width: 320px; }
+
+.decide { background: var(--b-surface); border: 1px solid var(--b-line); padding: 32px; }
+.decide h2 { margin: 0 0 12px; font-size: 24px; }
+.decide ol { margin: 0 0 16px; padding-left: 20px; max-width: 70ch; }
+.decide li { margin-bottom: 8px; }
+.decide p { margin: 0; color: var(--b-muted); max-width: 70ch; }
+
+/* ── Shared app structure (all three worlds) ────────────────────────── */
+.app { background: #fff; color: #111; position: relative; overflow: hidden; }
+.app * { box-sizing: border-box; }
+.app a { color: inherit; }
+.app button { font: inherit; color: inherit; cursor: pointer; }
+.app ::selection { background: var(--sel, #c7d0ff); }
+.app-header { display: flex; align-items: center; gap: 16px; }
+.site-name { text-decoration: none; }
+.zip { display: flex; margin-left: auto; }
+.zip input { font: inherit; width: 140px; min-height: 40px; padding: 0 12px; border-radius: 0; }
+.zip button { min-height: 40px; min-width: 44px; display: grid; place-items: center; }
+.app-body { display: grid; grid-template-columns: 420px 1fr; height: 760px; }
+.panel { overflow-y: auto; container-type: inline-size; container-name: panel; position: relative; }
+.frame-phone .app-body { display: block; height: auto; }
+.frame-phone .map-col { display: none; }
+.frame-phone .zip { display: none; }
+.map-col { position: relative; }
+.region-label { display: inline-block; }
+.back { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; }
+.place-head { position: relative; }
+.place-name { margin: 0; }
+.kind { margin: 0; }
+.share { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+.glance { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 0; }
+.chip { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; text-decoration: none; }
+.card { position: relative; }
+.card-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0; }
+.risk-level { flex: 1 1 0; min-width: 0; }
+.card.is-proj .risk-level { flex-wrap: wrap; column-gap: 8px; row-gap: 2px; }
+.legend-proj { display: inline-flex; gap: 6px; align-items: baseline; }
+.legend-proj .hatch { align-self: center; }
+.how { font-size: 14px; }
+.so-what { margin: 0; text-wrap: pretty; }
+.trend { margin: 0; }
+.proj { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.hatch {
+  display: inline-block; width: 14px; height: 14px; flex: none;
+  border: 1px solid currentColor;
+  background: repeating-linear-gradient(-45deg, currentColor 0 1.2px, transparent 1.2px 4px);
+}
+.detail, .source { margin: 0; }
+.short-source, .about-btn { display: none; }
+.tip { margin: 0; display: flex; gap: 8px; align-items: baseline; }
+.tip svg { flex: none; align-self: center; }
+.collapsed { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; min-height: 44px; }
+.nearby ul { list-style: none; margin: 0; padding: 0; }
+.list-head { display: flex; align-items: baseline; gap: 12px; }
+.list-head h2 { margin: 0; flex: 1; }
+.switch { display: inline-flex; align-items: center; gap: 8px; }
+.switch-track { width: 32px; height: 20px; border-radius: 10px; position: relative; flex: none; }
+.switch-track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; transition: transform .15s ease-out; }
+.switch[aria-checked="true"] .switch-track::after { transform: translateX(12px); }
+.ri { width: 1em; height: 1em; flex: none; }
+.plate svg.ri { width: var(--gs, 18px); height: var(--gs, 18px); }
+
+@container panel (max-width: 480px) {
+  .detail, .source { display: none; }
+  .short-source { display: block; }
+  .about-btn { display: inline-flex; }
+}
+
+/* Map */
+.map { position: absolute; inset: 0; overflow: hidden; background: #e8e8e8; }
+.map.dark { background: #1f2023; }
+.tiles, .pins { position: absolute; inset: 0; }
+.tiles img { position: absolute; width: 256px; height: 256px; user-select: none; }
+.pin { position: absolute; line-height: 0; }
+.pin svg { overflow: visible; }
+.pin.is-neutral { display: none; }
+.show-unflagged .pin.is-neutral { display: block; }
+.map-notice { position: absolute; left: 50%; top: 40%; transform: translateX(-50%); background: #fff; color: #111; padding: 12px 16px; font-size: 14px; max-width: 320px; display: none; box-shadow: 0 2px 10px rgba(0,0,0,.2); }
+.map.tiles-failed .map-notice { display: block; }
+.attrib { position: absolute; right: 0; bottom: 0; font-size: 11px; line-height: 1.4; padding: 2px 6px; background: rgba(255,255,255,.85); color: #333; }
+.map.dark .attrib { background: rgba(20,20,22,.85); color: #ccc; }
+.map-tools { position: absolute; right: 12px; top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.map-tools button { min-height: 32px; padding: 0 12px; font-size: 14px; }
+.legend { position: absolute; left: 16px; bottom: 28px; width: 300px; }
+.legend-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 40px; }
+.legend[data-open="false"] .legend-body { display: none; }
+.legend-body ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.legend-body li { display: grid; grid-template-columns: 40px 1fr; align-items: center; gap: 8px; font-size: 14px; line-height: 1.3; }
+.legend-body li > span:first-child { display: grid; place-items: center; }
+
+/* Focus, visible everywhere */
+.app :focus-visible { outline: 2px solid var(--focus, #2a3cff); outline-offset: 2px; }
+
+/* ══ A · Field brochure ═════════════════════════════════════════════ */
+.dir-a .app {
+  --ink: #111111; --muted: #4f4f4f; --accent: #2330e0; --focus: #2330e0; --sel: #c9ccff;
+  font-family: "Archivo", sans-serif; font-variation-settings: "wdth" 100;
+  font-size: 16px; line-height: 1.45;
+}
+.dir-a .app-header { background: var(--ink); color: #fff; height: 64px; padding: 0 20px; }
+.dir-a .site-name { font-weight: 850; font-stretch: 75%; font-size: 30px; letter-spacing: -0.01em; color: #fff; }
+.dir-a .zip input { border: 0; background: #fff; color: var(--ink); }
+.dir-a .zip button { background: #fff; color: #111; border: 0; border-left: 1px solid #111; }
+.dir-a .region-label { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.dir-a .panel { border-right: 2px solid var(--ink); }
+.dir-a .panel-top { padding: 12px 20px 0; }
+.dir-a .back { font-size: 15px; font-weight: 600; }
+.dir-a .place-head { background: var(--ink); color: #fff; padding: 14px 20px 18px; margin-top: 12px; }
+.dir-a .place-head .region-label { color: #bdbdbd; margin-bottom: 8px; }
+.dir-a .place-name { font-weight: 850; font-stretch: 72%; font-size: 40px; line-height: 1; letter-spacing: -0.01em; }
+.dir-a .kind { font-weight: 600; margin-top: 8px; font-size: 16px; color: #d6d6d6; }
+.dir-a .share { position: absolute; right: 12px; top: 8px; background: none; border: 1.5px solid #fff; color: #fff; padding: 0 14px; font-weight: 600; min-height: 36px; }
+.dir-a .glance-wrap { padding: 16px 20px; border-bottom: 2px solid var(--ink); }
+.dir-a .chip { border: 1.5px solid var(--ink); padding: 0 10px 0 0; font-weight: 600; font-size: 15px; }
+.dir-a .chip .plate { width: 30px; height: 30px; }
+.dir-a .plate { background: var(--ink); color: #fff; display: grid; place-items: center; width: 32px; height: 32px; flex: none; --gs: 20px; }
+.dir-a .card { padding: 20px; border-bottom: 2px solid var(--ink); display: grid; gap: 12px; }
+.dir-a .risk-level { font-weight: 750; font-size: 18px; }
+.dir-a .card-head .how { flex-basis: 100%; margin-left: 42px; margin-top: -6px; }
+.dir-a .so-what { font-size: 26px; line-height: 1.18; font-weight: 650; font-stretch: 88%; letter-spacing: -0.01em; }
+.dir-a .trend { font-size: 17px; }
+.dir-a .proj { font-size: 12px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; margin-right: 8px; vertical-align: 2px; }
+.dir-a .detail { font-size: 16px; font-variant-numeric: tabular-nums; }
+.dir-a .source, .dir-a .short-source { font-size: 14px; color: var(--muted); }
+.dir-a .tip { font-weight: 600; }
+.dir-a .tip a { text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+.dir-a .about-btn { background: none; border: 0; padding: 0; font-size: 14px; font-weight: 600; text-decoration: underline; min-height: 24px; align-items: center; gap: 4px; }
+.dir-a .collapsed { background: none; border: 0; border-bottom: 2px solid var(--ink); padding: 12px 20px; font-size: 16px; color: var(--muted); }
+.dir-a .card.is-proj .risk-level { display: flex; align-items: center; gap: 10px; }
+.dir-a .nearby { padding: 24px 20px 32px; }
+.dir-a .list-head h2 { font-size: 22px; font-weight: 800; font-stretch: 80%; }
+.dir-a .nearby li { padding: 12px 0; border-top: 1px solid #bbb; }
+.dir-a .nearby li a { font-weight: 650; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.dir-a .nearby li p { margin: 2px 0 0; font-size: 15px; color: var(--muted); }
+.dir-a .switch { font-size: 15px; font-weight: 600; background: none; border: 0; padding: 0; min-height: 24px; }
+.dir-a .switch-track { border: 1.5px solid var(--ink); background: #fff; }
+.dir-a .switch-track::after { background: var(--ink); top: 1.5px; left: 1.5px; }
+.dir-a .switch[aria-checked="true"] .switch-track { background: var(--ink); }
+.dir-a .switch[aria-checked="true"] .switch-track::after { background: #fff; }
+.dir-a .map-label { position: absolute; left: 0; top: 0; background: var(--ink); color: #fff; padding: 6px 12px; z-index: 2; }
+.dir-a .legend { background: #fff; border: 2px solid var(--ink); }
+.dir-a .legend-toggle { background: var(--ink); color: #fff; border: 0; padding: 0 12px; font-weight: 700; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+.dir-a .legend-body { padding: 12px; }
+.dir-a .legend-body .switch { margin-top: 12px; padding-top: 12px; border-top: 1px solid #bbb; width: 100%; }
+.dir-a .map-tools button { background: #fff; border: 2px solid var(--ink); font-weight: 600; }
+
+/* ══ B · Street atlas ═══════════════════════════════════════════════ */
+.dir-b .app {
+  --ink: #1a1a1a; --muted: #4d4a45; --cover: #f7c600; --violet: #4b1d8f; --focus: #4b1d8f; --sel: #ffe680;
+  font-family: "Barlow", sans-serif; font-size: 16px; line-height: 1.45;
+}
+.dir-b .cond { font-family: "Barlow Condensed", sans-serif; }
+.dir-b .app-header { background: var(--cover); color: var(--ink); height: 64px; padding: 0 20px; border-bottom: 3px solid var(--ink); }
+.dir-b .site-name { font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 32px; letter-spacing: 0; font-style: italic; }
+.dir-b .zip input { border: 2px solid var(--ink); background: #fff; }
+.dir-b .zip button { background: var(--ink); color: var(--cover); border: 0; }
+.dir-b .region-label { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; background: var(--ink); color: var(--cover); padding: 2px 10px 1px; }
+.dir-b .panel { border-right: 3px solid var(--ink); background: #fff; }
+.dir-b .panel-top { padding: 16px 20px 0; }
+.dir-b .back { font-weight: 600; font-size: 15px; }
+.dir-b .place-head { padding: 12px 20px 16px; }
+.dir-b .place-head .region-label { position: absolute; top: 0; right: 20px; }
+.dir-b .place-name { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 42px; line-height: 1; margin-top: 8px; }
+.dir-b .kind { font-family: "Barlow Condensed", sans-serif; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-top: 4px; }
+.dir-b .share { margin-top: 12px; background: #fff; border: 2px solid var(--ink); padding: 0 14px; font-weight: 600; min-height: 36px; }
+.dir-b .glance-wrap { padding: 0 20px 20px; }
+.dir-b .chip { background: #f3f1ec; padding: 0 12px 0 0; font-weight: 600; font-size: 15px; border-bottom: 2px solid var(--ink); }
+.dir-b .plate { background: var(--cover); color: var(--ink); display: grid; place-items: center; width: 32px; height: 32px; flex: none; --gs: 20px; border: 2px solid var(--ink); }
+.dir-b .chip .plate { border: 0; border-right: 2px solid var(--ink); }
+.dir-b .card { margin: 0 20px; padding: 20px 0; border-top: 3px solid var(--ink); display: grid; gap: 12px; }
+.dir-b .risk-level { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 22px; text-transform: uppercase; letter-spacing: .02em; }
+.dir-b .card-head .how { flex-basis: 100%; margin-left: 42px; margin-top: -6px; }
+.dir-b .so-what { font-size: 23px; line-height: 1.25; font-weight: 600; }
+.dir-b .trend { font-size: 17px; }
+.dir-b .proj { font-family: "Barlow Condensed", sans-serif; font-size: 16px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--violet); margin-right: 6px; }
+.dir-b .detail { font-size: 16px; font-variant-numeric: tabular-nums; }
+.dir-b .source, .dir-b .short-source { font-size: 14px; color: var(--muted); }
+.dir-b .tip { font-weight: 600; background: #f3f1ec; padding: 10px 12px; }
+.dir-b .tip a { text-decoration-color: var(--cover); text-decoration-thickness: 3px; text-underline-offset: 3px; }
+.dir-b .about-btn { background: none; border: 0; padding: 0; font-size: 15px; font-weight: 600; text-decoration: underline; min-height: 24px; align-items: center; gap: 4px; }
+.dir-b .collapsed { background: none; border: 0; border-top: 3px solid var(--ink); margin: 0 20px; width: calc(100% - 40px); padding: 12px 0; font-size: 16px; color: var(--muted); }
+.dir-b .card.is-proj .risk-level { display: flex; align-items: center; gap: 10px; }
+.dir-b .nearby { margin: 8px 20px 32px; padding: 20px 0 0; border-top: 3px solid var(--ink); }
+.dir-b .list-head h2 { font-family: "Barlow Condensed", sans-serif; font-size: 26px; font-weight: 700; text-transform: uppercase; }
+.dir-b .nearby li { padding: 10px 0; border-bottom: 1px dotted #888; }
+.dir-b .leader { display: flex; align-items: baseline; gap: 6px; }
+.dir-b .leader a { font-weight: 650; text-decoration: none; }
+.dir-b .leader a:hover { text-decoration: underline; }
+.dir-b .leader .dots { flex: 1; border-bottom: 2px dotted #777; transform: translateY(-4px); min-width: 16px; }
+.dir-b .leader .dist { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dir-b .nearby li p { margin: 2px 0 0; font-size: 15px; color: var(--muted); }
+.dir-b .switch { font-size: 15px; font-weight: 600; background: none; border: 0; padding: 0; min-height: 24px; }
+.dir-b .switch-track { background: #d9d6ce; border: 2px solid var(--ink); }
+.dir-b .switch-track::after { background: var(--ink); top: 1px; left: 1px; }
+.dir-b .switch[aria-checked="true"] .switch-track { background: var(--cover); }
+.dir-b .map-frame { position: absolute; inset: 0; border: 0; }
+.dir-b .map-label { position: absolute; left: 22px; top: 22px; z-index: 3; }
+.dir-b .grid-top, .dir-b .grid-side { position: absolute; z-index: 2; display: flex; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 13px; color: var(--ink); background: var(--cover); }
+.dir-b .grid-top { left: 0; right: 0; top: 0; height: 22px; padding-left: 22px; }
+.dir-b .grid-side { top: 22px; bottom: 0; left: 0; width: 22px; flex-direction: column; }
+.dir-b .grid-top span, .dir-b .grid-side span { flex: 1; display: grid; place-items: center; border-left: 1px solid rgba(0,0,0,.35); }
+.dir-b .grid-side span { border-left: 0; border-top: 1px solid rgba(0,0,0,.35); }
+.dir-b .grid-lines { position: absolute; left: 22px; top: 22px; right: 0; bottom: 0; z-index: 1; pointer-events: none;
+  background-image: linear-gradient(to right, rgba(26,26,26,.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(26,26,26,.18) 1px, transparent 1px);
+  background-size: calc(100% / 6) 100%, 100% calc(100% / 5); }
+.dir-b .map { left: 22px; top: 22px; }
+.dir-b .legend { background: #fff; border: 3px solid var(--ink); left: 38px; }
+.dir-b .legend-toggle { background: var(--cover); border: 0; border-bottom: 3px solid var(--ink); padding: 0 12px; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 17px; letter-spacing: .06em; text-transform: uppercase; }
+.dir-b .legend[data-open="false"] .legend-toggle { border-bottom: 0; }
+.dir-b .legend-body { padding: 12px; }
+.dir-b .legend-body .switch { margin-top: 12px; padding-top: 12px; border-top: 1px dotted #777; width: 100%; }
+.dir-b .map-tools { top: 34px; }
+.dir-b .map-tools button { background: #fff; border: 2px solid var(--ink); font-weight: 600; }
+
+/* ══ C · Category standard ══════════════════════════════════════════ */
+.dir-c .app {
+  --ink: #1f1f1f; --muted: #5f6368; --blue: #1a66d6; --focus: #1a66d6; --sel: #c6dafc;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.5;
+  background: #f4f5f7;
+}
+.dir-c .app-header { background: #fff; height: 64px; padding: 0 20px; border-bottom: 1px solid #dadce0; }
+.dir-c .site-name { font-weight: 700; font-size: 22px; }
+.dir-c .zip input { border: 1px solid #c4c7cc; border-radius: 8px 0 0 8px; background: #fff; }
+.dir-c .zip button { background: var(--blue); color: #fff; border: 0; border-radius: 0 8px 8px 0; }
+.dir-c .region-label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.dir-c .panel { background: #f4f5f7; border-right: 1px solid #dadce0; padding-bottom: 24px; }
+.dir-c .panel-top { padding: 16px 16px 0; }
+.dir-c .back { font-size: 15px; color: var(--blue); text-decoration: none; font-weight: 500; }
+.dir-c .place-head { margin: 12px 16px 0; padding: 16px; background: #fff; border-radius: 12px 12px 0 0; }
+.dir-c .place-name { font-size: 26px; line-height: 1.2; font-weight: 700; margin-top: 4px; }
+.dir-c .kind { color: var(--muted); margin-top: 2px; }
+.dir-c .share { position: absolute; top: 14px; right: 14px; border: 1px solid #c4c7cc; background: #fff; border-radius: 999px; padding: 0 14px; min-height: 36px; font-weight: 500; color: var(--blue); }
+.dir-c .glance-wrap { margin: 0 16px 12px; padding: 0 16px 16px; background: #fff; border-radius: 0 0 12px 12px; }
+.dir-c .chip { background: #f1f3f4; border-radius: 999px; padding: 0 12px 0 4px; font-size: 14px; font-weight: 500; }
+.dir-c .plate { background: #e8eaed; color: var(--ink); border-radius: 50%; display: grid; place-items: center; width: 32px; height: 32px; flex: none; --gs: 18px; }
+.dir-c .chip .plate { width: 24px; height: 24px; background: #fff; --gs: 15px; }
+.dir-c .card { margin: 0 16px 12px; padding: 16px; background: #fff; border-radius: 12px; box-shadow: 0 1px 2px rgba(60,64,67,.15), 0 2px 6px rgba(60,64,67,.08); display: grid; gap: 10px; }
+.dir-c .risk-level { font-weight: 600; font-size: 17px; }
+.dir-c .badge { display: inline-block; border-radius: 999px; padding: 1px 10px; font-size: 13px; font-weight: 600; margin-left: 6px; vertical-align: 1px; }
+.dir-c .badge.l1 { background: #fff1c4; color: #5b4300; }
+.dir-c .badge.l2 { background: #ffd8b8; color: #7a3300; }
+.dir-c .badge.l3 { background: #ffd5da; color: #8a0019; }
+.dir-c .card-head .how { flex-basis: 100%; color: var(--blue); text-decoration: none; margin-left: 42px; margin-top: -6px; }
+.dir-c .so-what { font-size: 18px; line-height: 1.45; font-weight: 500; }
+.dir-c .trend { font-size: 16px; color: #333; }
+.dir-c .proj { font-size: 13px; font-weight: 600; color: var(--muted); margin-right: 6px; }
+.dir-c .detail { font-size: 15px; color: #333; }
+.dir-c .source, .dir-c .short-source { font-size: 13px; color: var(--muted); }
+.dir-c .tip { font-size: 15px; color: #333; }
+.dir-c .tip a { color: var(--blue); text-decoration: none; font-weight: 500; }
+.dir-c .about-btn { background: none; border: 0; padding: 0; font-size: 14px; color: var(--blue); min-height: 24px; align-items: center; gap: 4px; }
+.dir-c .collapsed { margin: 0 16px 12px; width: calc(100% - 32px); background: #fff; border: 1px solid #dadce0; border-radius: 12px; padding: 10px 16px; font-size: 15px; color: var(--muted); }
+.dir-c .card.is-proj .risk-level { display: flex; align-items: center; gap: 8px; }
+.dir-c .nearby { margin: 16px 16px 0; padding: 16px; background: #fff; border-radius: 12px; }
+.dir-c .list-head h2 { font-size: 18px; font-weight: 600; }
+.dir-c .nearby li { padding: 10px 0; border-top: 1px solid #eee; }
+.dir-c .nearby li a { color: var(--blue); text-decoration: none; font-weight: 500; }
+.dir-c .nearby li p { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
+.dir-c .switch { font-size: 14px; background: none; border: 0; padding: 0; min-height: 24px; color: var(--muted); }
+.dir-c .switch-track { background: #bdc1c6; }
+.dir-c .switch-track::after { background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+.dir-c .switch[aria-checked="true"] .switch-track { background: var(--blue); }
+.dir-c .map-label { position: absolute; left: 12px; top: 12px; z-index: 2; background: rgba(255,255,255,.9); padding: 2px 8px; border-radius: 6px; }
+.dir-c .legend { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(60,64,67,.25); overflow: hidden; }
+.dir-c .legend-toggle { background: #fff; border: 0; border-bottom: 1px solid #eee; padding: 0 14px; font-weight: 600; font-size: 15px; }
+.dir-c .legend[data-open="false"] .legend-toggle { border-bottom: 0; }
+.dir-c .legend-body { padding: 12px 14px 14px; }
+.dir-c .legend-body .switch { margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee; width: 100%; color: var(--ink); }
+.dir-c .map-tools button { background: #fff; border: 0; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.25); font-weight: 500; }
+
+/* Phone frame adjustments */
+.frame-phone .app-header { height: 56px; padding: 0 16px; }
+.frame-phone .dir-a-scope .site-name { font-size: 26px; }
+.frame-phone .place-name { font-size: 34px; }
+.dir-c .frame-phone .place-name { font-size: 24px; }
+.frame-phone .dir-a-panel .so-what { font-size: 23px; }
+@media (prefers-reduced-motion: reduce) { .switch-track::after { transition: none; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="air" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5h9.5a2.5 2.5 0 1 0-2.5-2.5"/><path d="M3 14h13.5a2.5 2.5 0 1 1-2.5 2.5"/><circle cx="18.5" cy="8" r="1.1" fill="currentColor" stroke="none"/><circle cx="20.5" cy="11.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="6" cy="18.5" r="1.1" fill="currentColor" stroke="none"/></g></symbol>
+  <symbol id="heat" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5a2 2 0 0 1 4 0v9.6a3.5 3.5 0 1 1-4 0z"/><path d="M12 9.5v6.5"/><circle cx="12" cy="17.6" r="1.4" fill="currentColor" stroke="none"/><path d="M16.5 6h2M16.5 9h2M16.5 12h2"/></g></symbol>
+  <symbol id="fire" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(0 1.5)"><path d="M12 3c.6 2.8 4.8 4.8 4.8 9.7a4.8 4.8 0 0 1-9.6 0c0-2.4 1.2-4 2.6-5.2.2 1.6.9 2.6 2.1 3.1-.2-2.9-.5-5.2.1-7.6z"/><path d="M12 11.8c1.1 1 1.9 2 1.9 3.2a1.9 1.9 0 0 1-3.8 0c0-1.2.8-2.2 1.9-3.2z"/></g></g></symbol>
+  <symbol id="sea" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18" stroke-dasharray="2.5 2.5"/><path d="M3 13.5c1.5 0 1.5-1.5 3-1.5s1.5 1.5 3 1.5c1.5 0 1.5-1.5 3-1.5s1.5 1.5 3 1.5c1.5 0 1.5-1.5 3-1.5s1.5 1.5 3 1.5"/><path d="M3 18c1.5 0 1.5-1.5 3-1.5s1.5 1.5 3 1.5c1.5 0 1.5-1.5 3-1.5s1.5 1.5 3 1.5c1.5 0 1.5-1.5 3-1.5s1.5 1.5 3 1.5"/></g></symbol>
+  <symbol id="arrow-r" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="arrow-l" viewBox="0 0 16 16"><path d="M13 8H3M7 4L3 8l4 4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="chev" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></symbol>
+  <symbol id="share" viewBox="0 0 16 16"><path d="M8 10V2.5M5 5.5l3-3 3 3M3.5 8.5v5h9v-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <defs>
+    <pattern id="hatch-dark" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="#fff"/><line x1="0" y1="0" x2="0" y2="4" stroke="#111" stroke-width="1.3"/></pattern>
+    <pattern id="hatch-violet" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="#fff"/><line x1="0" y1="0" x2="0" y2="4" stroke="#4b1d8f" stroke-width="1.3"/></pattern>
+    <pattern id="hatch-grey" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="#fff"/><line x1="0" y1="0" x2="0" y2="4" stroke="#5f6368" stroke-width="1.3"/></pattern>
+  </defs>
+</svg>
+
+<main class="board">
+  <h1>So What? · Visual directions</h1>
+  <p class="lede"><strong>M3a, board 1.</strong> Three visual worlds, each drawn on the same place panel and the same map crop over the real Stadia tiles (Alidade Smooth and Smooth Dark). Judge them the way the product will be judged: can someone who has never been to LA read one place's risks in 30 seconds, and is the So What? sentence the thing the eye lands on?</p>
+  <p class="lede"><strong>Illustrative content.</strong> The sentences come word for word from the voice doc's templates. The place, the numbers, the pins and the nearby list are invented for this board. They are not M1 data. Tiles load only when this page is served from localhost (<code>python3 -m http.server</code> from the repo root), because Stadia authorizes by domain.</p>
+
+  <div class="b-rules" aria-label="Rules shared by all three directions">
+    <div><h2>Pictogram plates</h2><p>The risk glyph and its name always appear together as one unit, at set sizes: card headings, chips, legend. No component shows a glyph alone.</p></div>
+    <div><h2>The hatch means "Projected"</h2><p>One fine diagonal hatch marks every projection (the trend-line label, the sea-level card, the dashed pin, the legend entry) and nothing that isn't one.</p></div>
+    <div><h2>Region labels</h2><p>Map, legend and place panel each carry a small label that matches the landmark name a screen reader announces.</p></div>
+  </div>
+
+  <!-- ── A ─────────────────────────────────────────────── -->
+  <section class="dir dir-a" aria-labelledby="dir-a-h">
+    <div class="dir-intro">
+      <div>
+        <h2 id="dir-a-h">A · Field brochure</h2>
+        <p class="source">From the National Park Service's Unigrid brochures: black title bands, a strict grid, and a map beside the one line you must read.</p>
+        <p class="thesis">Each place is a brochure panel. A black band names it, and the So What? sentence is the largest type on the page, the way a park brochure prints "Heat can kill. Carry water." above everything else. It works in black and white first. Colour is kept for one thing: the place you've selected.</p>
+      </div>
+      <dl class="dir-facts">
+        <div><dt>Palette</dt><dd>Ink and paper; pins in three greys; one ultramarine for the selected place and focus.<div class="swatches" aria-hidden="true"><span style="background:#111"></span><span style="background:#fff"></span><span style="background:#e6e6e6"></span><span style="background:#8a8a8a"></span><span style="background:#2330e0"></span></div></dd></div>
+        <div><dt>Type</dt><dd>Archivo only. Condensed for bands and place names, regular width for reading.</dd></div>
+        <div><dt>Borrowed discipline</dt><dd>Black and white first (HyperCard) · poster-scale So What? (Metro tiles) · one accent, only for selection (origami crane) · one family (phosphor terminal).</dd></div>
+        <div class="risk-line"><dt>Honest risk</dt><dd>It can read as a government publication, so "not an official hazard assessment" has to stay visible. The black bands are heavy at 320px. Grey pins on grey tiles depend entirely on the halo.</dd></div>
+      </dl>
+    </div>
+    <div class="frames">
+      <div class="frame-wrap"><p class="frame-cap"><b>Desktop</b> · place page, light tiles · scroll the panel</p><div class="scroller"><div class="frame-desk" data-frame="a-desk"></div></div></div>
+      <div class="frame-wrap"><p class="frame-cap"><b>320px</b> · place panel</p><div class="scroller"><div class="frame-phone" data-frame="a-phone"></div></div></div>
+    </div>
+  </section>
+
+  <!-- ── B ─────────────────────────────────────────────── -->
+  <section class="dir dir-b" aria-labelledby="dir-b-h">
+    <div class="dir-intro">
+      <div>
+        <h2 id="dir-b-h">B · Street atlas</h2>
+        <p class="source">From LA's spiral-bound street atlas: the yellow cover, index tabs on the page edge, grid letters around every map, dotted leaders in the index.</p>
+        <p class="thesis">The site is an atlas of everyday places. The map sits in a lettered grid frame. "Nearby places" reads as an atlas index, with dotted leaders out to the distance. Section names sit on black thumb tabs. Levels print in overprint violet, as if a second colour ran through the press.</p>
+      </div>
+      <dl class="dir-facts">
+        <div><dt>Palette</dt><dd>Cover yellow as a field; ink; overprint violet for levels (pale to deep); an off-grey for index strips.<div class="swatches" aria-hidden="true"><span style="background:#f7c600"></span><span style="background:#1a1a1a"></span><span style="background:#e4d9f5"></span><span style="background:#9b6ad6"></span><span style="background:#4b1d8f"></span></div></dd></div>
+        <div><dt>Type</dt><dd>Barlow Condensed for tabs, place names and distances; Barlow for reading. One superfamily, with California road-sign ancestry.</dd></div>
+        <div><dt>Why it's here</dt><dd>My own top-ranked candidate, shown next to the one the roll assigned.</dd></div>
+        <div class="risk-line"><dt>Honest risk</dt><dd>It's familiar ground: this is where a run like this usually lands. It carries strong nostalgia for Angelenos and means little to a grader outside LA. It must never borrow Rand McNally's branding. The grid letters are framing, not coordinates anyone uses.</dd></div>
+      </dl>
+    </div>
+    <div class="frames">
+      <div class="frame-wrap"><p class="frame-cap"><b>Desktop</b> · place page, light tiles · scroll the panel</p><div class="scroller"><div class="frame-desk" data-frame="b-desk"></div></div></div>
+      <div class="frame-wrap"><p class="frame-cap"><b>320px</b> · place panel</p><div class="scroller"><div class="frame-phone" data-frame="b-phone"></div></div></div>
+    </div>
+  </section>
+
+  <!-- ── C ─────────────────────────────────────────────── -->
+  <section class="dir dir-c" aria-labelledby="dir-c-h">
+    <div class="dir-intro">
+      <div>
+        <h2 id="dir-c-h">C · The standard map app</h2>
+        <p class="source">The category standard, played straight: the look of the mainstream map and air-quality apps.</p>
+        <p class="thesis">White rounded cards on a light grey panel, a system font, coloured pill badges for levels, teardrop pins. It's familiar, so nobody has to learn it. It's on the board as the reference point for A and B, not as a recommendation.</p>
+      </div>
+      <dl class="dir-facts">
+        <div><dt>Palette</dt><dd>White and grey surfaces, link blue, a yellow-orange-red level ramp.<div class="swatches" aria-hidden="true"><span style="background:#f4f5f7"></span><span style="background:#1a66d6"></span><span style="background:#fed976"></span><span style="background:#fd8d3c"></span><span style="background:#bd0026"></span></div></dd></div>
+        <div><dt>Type</dt><dd>The platform system font.</dd></div>
+        <div class="risk-line"><dt>Honest risk</dt><dd>The So What? sentence ends up the same size as everything else, and the coloured badge becomes what the eye lands on, which works against principle 1. It looks like every other map, so it's easy to forget. The red end of the ramp reads as alarm.</dd></div>
+      </dl>
+    </div>
+    <div class="frames">
+      <div class="frame-wrap"><p class="frame-cap"><b>Desktop</b> · place page, light tiles · scroll the panel</p><div class="scroller"><div class="frame-desk" data-frame="c-desk"></div></div></div>
+      <div class="frame-wrap"><p class="frame-cap"><b>320px</b> · place panel</p><div class="scroller"><div class="frame-phone" data-frame="c-phone"></div></div></div>
+    </div>
+  </section>
+
+  <section class="decide" aria-labelledby="decide-h">
+    <h2 id="decide-h">Choosing</h2>
+    <ol>
+      <li><strong>Squint at each desktop frame.</strong> What does your eye land on first? It should be the So What? sentence, not a badge, a band or a pin.</li>
+      <li><strong>Read the 320px frames as a stranger would.</strong> Imagine you've never been to Wilmington. Which one tells you what's wrong at this stop, and what to do, fastest?</li>
+      <li><strong>Switch each map to dark tiles.</strong> Pin colours aren't final (that's board 2), but the world has to survive both backgrounds.</li>
+      <li><strong>Picture it one level down:</strong> the About page, a "not found" page, the loading state. Which world still has something to say there?</li>
+    </ol>
+    <p>Pick one, or name what to carry from one into another. The chosen world goes on to board 2 (pin palette and legend, measured on these tiles), then the glyph pass, then DESIGN.md.</p>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  // ── Illustrative content (voice doc templates; invented place & values) ──
+  const PLACE = {
+    name: "Anaheim St / Avalon Blvd",
+    kind: "Bus stop",
+    lat: 33.7797, lon: -118.2626,
+  };
+  const LEVELS = { 1: "Elevated", 2: "High", 3: "Severe" };
+
+  const CARDS = [
+    {
+      risk: "air", name: "Air pollution", level: 3,
+      soWhat: "Fine-particle air pollution here is higher than in 97% of California neighborhoods. Riders breathe it every time they wait, and it adds up over years of commuting.",
+      detail: "PM2.5: 78th percentile · Diesel PM: 97th percentile (statewide, 2015–2017 data)",
+      source: "Source: CalEnviroScreen 4.0 (OEHHA)",
+      shortSource: "Source: CalEnviroScreen (OEHHA)",
+      tip: ["Check today's air quality before long waits or outdoor exercise.", "AirNow"],
+    },
+    {
+      risk: "heat", name: "Heat", level: 1,
+      soWhat: "This neighborhood traps more heat from pavement and buildings than 81% of LA County neighborhoods. A long summer wait in direct sun can cause heat illness, especially for older riders.",
+      trend: "And it's getting hotter: this area is projected to go from about 4 to 11 extreme-heat days a year by mid-century.",
+      detail: "Urban Heat Island Index: 81st percentile in LA County (2019 data)",
+      source: "Source: CalEPA Urban Heat Island Index · Projection: Cal-Adapt LOCA2, SSP2-4.5, 1981–2010 vs. 2035–2064",
+      shortSource: "Source: CalEPA · Cal-Adapt",
+      tip: ["On hot days, cooling centers are open across LA County. Find one near you:", "LA County heat resources"],
+    },
+  ];
+  const SEA = {
+    risk: "sea", name: "Sea level rise",
+    soWhat: "By mid-century, with about 1 foot of sea level rise, a typical winter storm could flood this stop. Service here may be moved or cut on those days.",
+    detail: "USGS CoSMoS: 1 ft sea level rise, annual storm · OPC Intermediate scenario, 2040–2060",
+    source: "Source: USGS CoSMoS · OPC",
+    shortSource: "Source: USGS CoSMoS · OPC",
+    tip: ["See how rising seas and storms could affect the coast near you.", "Our Coast, Our Future"],
+  };
+  const NEARBY = [
+    ["Avalon Blvd / L St", "bus stop", "Air pollution: Severe, Sea level rise: Projected", "0.3 miles"],
+    ["Anaheim St / Marine Ave", "bus stop", "Air pollution: Severe", "0.4 miles"],
+    ["Wilmington Waterfront Park", "park", "Sea level rise: Projected", "0.6 miles"],
+    ["Anaheim St / Wilmington Blvd", "bus stop", "Air pollution: High, Heat: Elevated", "0.7 miles"],
+    ["Pacific Coast Hwy / Avalon Blvd", "bus stop", "Air pollution: High", "0.9 miles"],
+  ];
+  // Invented pins around the place: [lat, lon, kind]
+  const PINS = [
+    [33.7797, -118.2626, { level: 3, sea: true, selected: true }],
+    [33.7768, -118.2628, { level: 3, sea: true }],
+    [33.7799, -118.2583, { level: 3 }],
+    [33.7732, -118.2601, { sea: "only" }],
+    [33.7718, -118.2660, { sea: "only" }],
+    [33.7801, -118.2512, { level: 2 }],
+    [33.7862, -118.2631, { level: 2 }],
+    [33.7840, -118.2700, { level: 1 }],
+    [33.7885, -118.2560, { level: 1 }],
+    [33.7824, -118.2659, { neutral: true }],
+    [33.7870, -118.2685, { neutral: true }],
+    [33.7757, -118.2548, { neutral: true }],
+    [33.7925, -118.2480, { cluster: 14 }],
+    [33.7930, -118.2790, { cluster: 9 }],
+  ];
+
+  // ── Per-direction pin styles ──
+  const STYLE = {
+    a: { shape: "circle", fills: ["#e6e6e6", "#8a8a8a", "#1a1a1a"], meter: ["#111", "#fff", "#fff"], ring: "#2330e0", hatch: "hatch-dark", cluster: ["#111", "#fff"], plate: "a" },
+    b: { shape: "square", fills: ["#e4d9f5", "#9b6ad6", "#4b1d8f"], meter: ["#2a1050", "#fff", "#fff"], ring: "#f7c600", hatch: "hatch-violet", cluster: ["#4b1d8f", "#fff"], plate: "b" },
+    c: { shape: "drop", fills: ["#fed976", "#fd8d3c", "#bd0026"], meter: ["#5a2a00", "#2a0e00", "#fff"], ring: "#1a66d6", hatch: "hatch-grey", cluster: ["#fff", "#1f1f1f"], plate: "c" },
+  };
+
+  const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const icon = (id, cls = "ri") => `<svg class="${cls}" aria-hidden="true" focusable="false"><use href="#${id}"/></svg>`;
+
+  function meterSvg(level, size = 18, color = "currentColor") {
+    const w = size, h = size, bw = w * 0.22, gap = w * 0.12;
+    const hs = [0.45, 0.72, 1].map((f) => f * h * 0.8);
+    let out = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true" focusable="false">`;
+    hs.forEach((bh, i) => {
+      const x = (w - (3 * bw + 2 * gap)) / 2 + i * (bw + gap);
+      const y = h * 0.9 - bh;
+      out += i < level
+        ? `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="${color}"/>`
+        : `<rect x="${x + 0.6}" y="${y + 0.6}" width="${bw - 1.2}" height="${bh - 1.2}" fill="none" stroke="${color}" stroke-width="1.2"/>`;
+    });
+    return out + "</svg>";
+  }
+
+  // Pin marker as SVG string, centred on its anchor.
+  function pinSvg(d, opt) {
+    const st = STYLE[d];
+    if (opt.cluster) {
+      const [bg, fg] = st.cluster;
+      return { html: `<svg width="44" height="44" viewBox="-22 -22 44 44" aria-hidden="true"><circle r="18" fill="none" stroke="#fff" stroke-width="5"/><circle r="18" fill="${bg}" stroke="#111" stroke-width="1.5"/><text y="5" text-anchor="middle" font-size="14" font-weight="700" fill="${fg}" font-family="system-ui,sans-serif">${opt.cluster}</text></svg>`, anchor: "center" };
+    }
+    if (opt.neutral) {
+      return { html: `<svg width="18" height="18" viewBox="-9 -9 18 18" aria-hidden="true"><circle r="6" fill="none" stroke="#fff" stroke-width="4"/><circle r="6" fill="#9a9a9a" stroke="#222" stroke-width="1.5"/></svg>`, anchor: "center" };
+    }
+    const seaOnly = opt.sea === "only";
+    const lvl = opt.level || 0;
+    const fill = seaOnly ? `url(#${st.hatch})` : st.fills[lvl - 1];
+    const mc = seaOnly ? "#111" : st.meter[lvl - 1];
+    const dash = seaOnly ? ` stroke-dasharray="3 2.2"` : "";
+    const s = opt.selected ? 1.25 : 1;
+    let shape, inner, box, anchor = "center";
+    const meter = (cx, cy) => {
+      const bw = 3.2, gap = 1.8, hs = [5, 8, 11];
+      let m = "";
+      hs.forEach((bh, i) => {
+        const x = cx - (3 * bw + 2 * gap) / 2 + i * (bw + gap), y = cy + 5.5 - bh;
+        m += i < lvl ? `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="${mc}"/>`
+                     : `<rect x="${x + .5}" y="${y + .5}" width="${bw - 1}" height="${bh - 1}" fill="none" stroke="${mc}" stroke-width="1"/>`;
+      });
+      return m;
+    };
+    const wave = (cx, cy, r) => `<svg x="${cx - r}" y="${cy - r}" width="${2 * r}" height="${2 * r}" viewBox="0 0 24 24" color="#111"><use href="#sea"/></svg>`;
+    if (st.shape === "drop") {
+      const p = "M0 0 C0 0 -12 -14 -12 -22 A12 12 0 1 1 12 -22 C12 -14 0 0 0 0Z";
+      shape = (extra) => `<path d="${p}" ${extra}/>`;
+      inner = seaOnly ? `<rect x="-8" y="-30" width="16" height="16" fill="#fff"/>${wave(0, -22, 8)}` : meter(0, -22);
+      box = "-20 -42 40 46"; anchor = "bottom";
+      var badgeAt = [10, -32], ringShape = `<circle cx="0" cy="-22" r="17" fill="none" stroke="${st.ring}" stroke-width="3.5"/>`;
+    } else if (st.shape === "square") {
+      shape = (extra) => `<rect x="-12" y="-12" width="24" height="24" rx="2" ${extra}/>`;
+      inner = seaOnly ? `<rect x="-7" y="-7" width="14" height="14" fill="#fff"/>${wave(0, 0, 7)}` : meter(0, 0);
+      box = "-22 -22 44 44";
+      var badgeAt = [11, -11], ringShape = `<rect x="-18" y="-18" width="36" height="36" rx="3" fill="none" stroke="${st.ring}" stroke-width="5"/><rect x="-20.5" y="-20.5" width="41" height="41" rx="4" fill="none" stroke="#111" stroke-width="1.2"/>`;
+    } else {
+      shape = (extra) => `<circle r="13" ${extra}/>`;
+      inner = seaOnly ? `<circle r="7.5" fill="#fff"/>${wave(0, 0, 7)}` : meter(0, 0);
+      box = "-22 -22 44 44";
+      var badgeAt = [11, -11], ringShape = `<circle r="18.5" fill="none" stroke="${st.ring}" stroke-width="3.5"/>`;
+    }
+    const badge = opt.sea === true
+      ? `<g transform="translate(${badgeAt[0]} ${badgeAt[1]})"><circle r="7" fill="#fff" stroke="#111" stroke-width="1.3"/>${wave(0, 0, 5)}</g>` : "";
+    const [bx, by, bw2, bh2] = box.split(" ").map(Number);
+    const html = `<svg width="${bw2 * s}" height="${bh2 * s}" viewBox="${box}" aria-hidden="true">
+      ${opt.selected ? ringShape : ""}
+      ${shape(`fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="round"`)}
+      ${shape(`fill="${fill}" stroke="#111" stroke-width="1.5"${dash} stroke-linejoin="round"`)}
+      ${inner}${badge}</svg>`;
+    return { html, anchor };
+  }
+
+  // ── Panel ──
+  function plate(d, risk, gs) {
+    return `<span class="plate"${gs ? ` style="--gs:${gs}px"` : ""}>${icon(risk)}</span>`;
+  }
+  function levelBit(d, level) {
+    if (d === "c") return `<span class="badge l${level}">${LEVELS[level]}</span>`;
+    return meterSvg(level, 20);
+  }
+  function hatchLabel() {
+    return `<span class="proj"><span class="hatch" aria-hidden="true"></span>Projected</span>`;
+  }
+  function tipHtml(t) {
+    return `<p class="tip">${icon("arrow-r", "ri")}<span>${esc(t[0])} <a href="#">${esc(t[1])}</a></span></p>`;
+  }
+  function dataBits(c) {
+    return `<p class="detail">${esc(c.detail)}</p>
+      <p class="source">${esc(c.source)}</p>
+      <p class="short-source">${esc(c.shortSource)}</p>
+      <button class="about-btn" aria-expanded="false">About this data ${icon("chev", "ri")}</button>`;
+  }
+  function cardHtml(d, c, i) {
+    const title = d === "c"
+      ? `${esc(c.name)} <span class="visually-hidden">—</span>`
+      : `${esc(c.name)} — ${LEVELS[c.level]}`;
+    return `<section class="card" aria-labelledby="h-${d}-${c.risk}-${i}">
+      <h3 class="card-head" id="h-${d}-${c.risk}-${i}">${plate(d, c.risk)}<span class="risk-level">${d === "c" ? `${esc(c.name)}<span class="badge l${c.level}">${LEVELS[c.level]}</span>` : title}</span>${d === "c" ? "" : levelBit(d, c.level)}${i === 0 ? `<a class="how" href="#">How levels work</a>` : ""}</h3>
+      <p class="so-what">${esc(c.soWhat)}</p>
+      ${c.trend ? `<p class="trend">${hatchLabel()} ${esc(c.trend)}</p>` : ""}
+      ${dataBits(c)}
+      ${tipHtml(c.tip)}
+    </section>`;
+  }
+  function seaCardHtml(d) {
+    return `<section class="card is-proj" aria-labelledby="h-${d}-sea">
+      <h3 class="card-head" id="h-${d}-sea">${plate(d, "sea")}<span class="risk-level">${esc(SEA.name)} — ${hatchLabel()}</span></h3>
+      <p class="so-what">${esc(SEA.soWhat)}</p>
+      ${dataBits(SEA)}
+      ${tipHtml(SEA.tip)}
+    </section>`;
+  }
+  function chip(d, risk, text, proj) {
+    return `<li><a class="chip" href="#">${plate(d, risk)}${proj ? `${text.replace("Projected", "")}<span class="hatch" aria-hidden="true"></span>Projected` : text}</a></li>`;
+  }
+  function nearbyHtml(d) {
+    const items = NEARBY.map(([n, k, r, dist]) => d === "b"
+      ? `<li><div class="leader"><a href="#">${esc(n)}</a><span class="dots" aria-hidden="true"></span><span class="dist">${dist}</span></div><p>${k} — ${esc(r)}</p></li>`
+      : `<li><a href="#">${esc(n)}</a><p>${k} — ${esc(r)} — ${dist}</p></li>`).join("");
+    return `<section class="nearby" aria-labelledby="nb-${d}">
+      <div class="list-head"><h2 id="nb-${d}">Nearby places</h2>${switchHtml(d, "Unflagged", false)}</div>
+      <ul>${items}</ul></section>`;
+  }
+  function switchHtml(d, label, on) {
+    return `<button class="switch" role="switch" aria-checked="${on}"><span class="switch-track" aria-hidden="true"></span>${label}</button>`;
+  }
+  function panelHtml(d) {
+    const regionPlace = `<span class="region-label">Place</span>`;
+    return `<div class="panel ${d === "a" ? "dir-a-panel" : ""}" role="region" aria-label="Place">
+      <div class="panel-top"><a class="back" href="#">${icon("arrow-l")} Places near here</a></div>
+      <div class="place-head">
+        ${regionPlace}
+        <h2 class="place-name">${esc(PLACE.name)}</h2>
+        <p class="kind">${PLACE.kind}</p>
+        <button class="share">${icon("share")} Share</button>
+      </div>
+      <div class="glance-wrap"><nav aria-label="Risks at this place"><ul class="glance">
+        ${chip(d, "air", "Air pollution — Severe")}
+        ${chip(d, "heat", "Heat — Elevated")}
+        ${chip(d, "sea", "Sea level rise — Projected", true)}
+      </ul></nav></div>
+      ${CARDS.map((c, i) => cardHtml(d, c, i)).join("")}
+      <button class="collapsed" aria-expanded="false">${icon("chev")} Not flagged in current data for wildfire.</button>
+      ${seaCardHtml(d)}
+      ${nearbyHtml(d)}
+    </div>`;
+  }
+
+  // ── Map ──
+  function legendHtml(d) {
+    const sw = (opt) => pinSvg(d, opt).html;
+    const small = (h) => `<span style="display:grid;place-items:center;transform:scale(.8)">${h}</span>`;
+    return `<div class="legend" data-open="true" role="region" aria-label="Legend">
+      <button class="legend-toggle" aria-expanded="true">Legend ${icon("chev")}</button>
+      <div class="legend-body"><ul>
+        <li>${small(sw({ level: 1 }))}<span>Elevated</span></li>
+        <li>${small(sw({ level: 2 }))}<span>High</span></li>
+        <li>${small(sw({ level: 3 }))}<span>Severe (the highest level at the place)</span></li>
+        <li>${small(sw({ sea: "only" }))}<span class="legend-proj"><span class="hatch" aria-hidden="true"></span><span>Projected coastal flooding by mid-century</span></span></li>
+        <li>${small(sw({ neutral: true }))}<span>Not flagged for any risk</span></li>
+      </ul>${switchHtml(d, "Show unflagged places", true)}</div>
+    </div>`;
+  }
+  function mapColHtml(d) {
+    const grid = d === "b"
+      ? `<div class="grid-top" aria-hidden="true">${"ABCDEF".split("").map((l) => `<span>${l}</span>`).join("")}</div>
+         <div class="grid-side" aria-hidden="true">${[1, 2, 3, 4, 5].map((n) => `<span>${n}</span>`).join("")}</div>
+         <div class="grid-lines" aria-hidden="true"></div>` : "";
+    return `<div class="map-col" role="region" aria-label="Map">
+      ${grid}
+      <span class="region-label map-label">Map</span>
+      <div class="map show-unflagged" data-dir="${d}">
+        <div class="tiles"></div><div class="pins"></div>
+        <p class="map-notice">The map background isn't loading. Serve this board from localhost to see the Stadia tiles. Places and the list still work.</p>
+        <div class="attrib">© <a href="https://stadiamaps.com/attribution/">Stadia Maps</a>, © <a href="https://openmaptiles.org/">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a></div>
+      </div>
+      <div class="map-tools"><button class="tile-toggle" aria-pressed="false">Dark tiles</button></div>
+      ${legendHtml(d)}
+    </div>`;
+  }
+
+  function project(lat, lon, z) {
+    const n = 256 * Math.pow(2, z), r = (lat * Math.PI) / 180;
+    return [((lon + 180) / 360) * n, ((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * n];
+  }
+  function renderMap(map) {
+    const d = map.dataset.dir, dark = map.classList.contains("dark");
+    const z = 15, w = map.clientWidth, h = map.clientHeight;
+    if (!w || !h) return;
+    const [cx, cy] = project(PLACE.lat - 0.0012, PLACE.lon - 0.0035, z);
+    const ox = cx - w / 2, oy = cy - h / 2;
+    const style = dark ? "alidade_smooth_dark" : "alidade_smooth";
+    const tiles = map.querySelector(".tiles");
+    tiles.innerHTML = "";
+    let fails = 0;
+    for (let tx = Math.floor(ox / 256); tx <= Math.floor((ox + w) / 256); tx++) {
+      for (let ty = Math.floor(oy / 256); ty <= Math.floor((oy + h) / 256); ty++) {
+        const img = new Image();
+        img.alt = "";
+        img.decoding = "async";
+        img.style.left = tx * 256 - ox + "px";
+        img.style.top = ty * 256 - oy + "px";
+        img.onerror = () => { if (++fails >= 3) map.classList.add("tiles-failed"); };
+        img.src = `https://tiles.stadiamaps.com/tiles/${style}/${z}/${tx}/${ty}@2x.png`;
+        tiles.appendChild(img);
+      }
+    }
+    const pins = map.querySelector(".pins");
+    pins.innerHTML = PINS.map(([lat, lon, opt]) => {
+      const [px, py] = project(lat, lon, z);
+      const { html, anchor } = pinSvg(d, opt);
+      const tr = anchor === "bottom" ? "translate(-50%,-100%)" : "translate(-50%,-50%)";
+      return `<div class="pin${opt.neutral ? " is-neutral" : ""}" style="left:${px - ox}px;top:${py - oy}px;transform:${tr};z-index:${opt.selected ? 5 : opt.cluster ? 1 : 2}">${html}</div>`;
+    }).join("");
+  }
+
+  // ── Mount ──
+  document.querySelectorAll("[data-frame]").forEach((el) => {
+    const [d, kind] = el.dataset.frame.split("-");
+    el.innerHTML = `<div class="app">
+      <header class="app-header ${d === "a" ? "dir-a-scope" : ""}">
+        <a class="site-name" href="#">So What?</a>
+        <form class="zip" role="search" onsubmit="return false"><label class="visually-hidden" for="zip-${d}-${kind}" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Zip code</label><input id="zip-${d}-${kind}" inputmode="numeric" placeholder="Zip code" autocomplete="postal-code"><button aria-label="Search">${icon("search")}</button></form>
+      </header>
+      <div class="app-body">${panelHtml(d)}${kind === "desk" ? mapColHtml(d) : ""}</div>
+    </div>`;
+  });
+  document.querySelectorAll(".visually-hidden").forEach((n) => { n.style.cssText = "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap"; });
+
+  const maps = [...document.querySelectorAll(".map")];
+  const renderAll = () => maps.forEach(renderMap);
+  requestAnimationFrame(renderAll);
+
+  document.addEventListener("click", (e) => {
+    const t = e.target.closest("button, a");
+    if (!t) return;
+    if (t.tagName === "A" && t.getAttribute("href") === "#") e.preventDefault();
+    if (t.classList.contains("switch")) {
+      const on = t.getAttribute("aria-checked") !== "true";
+      t.setAttribute("aria-checked", on);
+      const map = t.closest(".map-col")?.querySelector(".map");
+      if (map) map.classList.toggle("show-unflagged", on);
+    } else if (t.classList.contains("legend-toggle")) {
+      const lg = t.closest(".legend"), open = lg.dataset.open !== "true";
+      lg.dataset.open = open; t.setAttribute("aria-expanded", open);
+    } else if (t.classList.contains("tile-toggle")) {
+      const map = t.closest(".map-col").querySelector(".map");
+      const dark = !map.classList.contains("dark");
+      map.classList.toggle("dark", dark);
+      t.setAttribute("aria-pressed", dark);
+      t.textContent = dark ? "Light tiles" : "Dark tiles";
+      renderMap(map);
+    }
+  });
+})();
+</script>
+</body>
+</html>
