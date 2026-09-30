@@ -1201,7 +1201,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -H 'Referer: https://sowhat-unregistere
 ```
 Expected: `200` for your host, with a `stadia-property` header that matches your property's ID in the dashboard. The second call should be refused (`401` or `403`). Don't test with `example.com`: another Stadia customer has registered it, so it returns `200` (billed to property 12196). If the provider only enforces restrictions in browsers, record that the second call succeeded from curl. Domain auth trusts the `Referer`/`Origin` headers, so anyone can spoof them from curl; that's the provider's model, not a leak.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/superpowers/spikes/2026-09-28-m0-findings.md web/.env.example docs/superpowers/plans/2026-09-28-m0-deployment-spike.md
