@@ -24,6 +24,7 @@ async function generateMetadata() {
     title: meta.title,
     description: meta.description,
     openGraph: {
+      siteName: 'So What?',
       title: meta.title,
       description: meta.description,
       url: '/',
