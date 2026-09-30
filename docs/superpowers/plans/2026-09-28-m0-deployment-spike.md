@@ -50,7 +50,7 @@ export TURSO_DB=sowhat-m0                  # created in Task 5 from data/sowhat-
 - "The app's Turso token is read-only; no route accepts writes" (§9).
 - "All SQL goes through Drizzle's parameterized builder / `sql` template (no string concatenation)" (§9).
 - "Every absolute URL the app writes … comes from `NEXT_PUBLIC_SITE_URL`, never a hard-coded host" (§8.1).
-- Env vars: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` (read-only token), `NEXT_PUBLIC_TILE_KEY`, `NEXT_PUBLIC_SITE_URL` (§8.1).
+- Env vars: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` (read-only token), `NEXT_PUBLIC_SITE_URL` (§8.1). The spec's `NEXT_PUBLIC_TILE_KEY` was dropped in Task 7: Stadia Maps uses domain-based auth, not a browser key.
 - Free tiers only. Vercel Hobby, Turso free plan.
 - `CELL_SIZE_DEG = 0.01`, and `cell = floor(value / CELL_SIZE_DEG)` with `floor`, not truncation (§6.1).
 - The author writes the spatial queries, and AI-assisted code is cited in a code comment (§13). This applies to the viewport query and cell math in Task 3.
@@ -920,9 +920,9 @@ TURSO_DATABASE_URL="libsql://<database>-<org>.turso.io"
 TURSO_AUTH_TOKEN=
 # The site's https:// origin; every absolute URL comes from here (spec §8.1).
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
-# Map tile provider key, domain-restricted (spec §7.4, §9). Chosen in Task 7.
-NEXT_PUBLIC_TILE_KEY=
 ```
+
+(This step originally also added `NEXT_PUBLIC_TILE_KEY`. Task 7 removed it and left a comment in its place.)
 
 Append to `web/.gitignore`, directly under the `.env*` line:
 
@@ -1161,12 +1161,12 @@ This is a research and account task. No app code changes, since Leaflet arrives 
 
 **Files:**
 - Modify: `docs/superpowers/spikes/2026-09-28-m0-findings.md`
-- Modify (not committed): `web/.env.local`
+- Modify: `web/.env.example` (remove `NEXT_PUBLIC_TILE_KEY`, leave a comment saying why)
 
 **Interfaces:**
-- Produces: a chosen provider, a raster XYZ tile URL template, the required attribution text, and `NEXT_PUBLIC_TILE_KEY` set in Vercel and `.env.local`. M3's `MapView.tsx` uses these.
+- Produces: a chosen provider (Stadia Maps), a raster XYZ tile URL template with no key in it, the required attribution text, and `$SITE_HOST` registered as a Stadia property. M3's `MapView.tsx` uses these.
 
-- [ ] **Step 1: Compare the three candidates against the spec's requirements**
+- [x] **Step 1: Compare the three candidates against the spec's requirements**
 
 Check the current pricing and terms pages for MapTiler, Stadia Maps and CARTO basemaps. Fill in this table in the findings doc under **Tile provider**, with a link to each page you read:
 
@@ -1181,25 +1181,30 @@ Check the current pricing and terms pages for MapTiler, Stadia Maps and CARTO ba
 
 Pick the provider that meets every row. If none can restrict a key to domains, record that, and pick the one whose unrestricted use is allowed by its terms.
 
-- [ ] **Step 2: Create the key and restrict it**
+- [x] **Step 2: Register the domain (no API key)**
 
-In the chosen provider's dashboard, create a key restricted to `https://$SITE_HOST`, the project's Vercel preview-domain pattern and `http://localhost:3000`. Add `NEXT_PUBLIC_TILE_KEY` to `web/.env.local` and to Vercel (Production and Preview).
+Stadia Maps API keys can't be restricted to domains, so a key in a `NEXT_PUBLIC_*` variable would be usable by anyone who reads the bundle. Use [domain-based authentication](https://docs.stadiamaps.com/authentication/#domain-based-authentication) instead:
+- In the Stadia dashboard, add a property for `$SITE_HOST`. Requests from that origin need no key.
+- `localhost` and `127.0.0.1` need no auth, so local dev works as-is.
+- Vercel preview deployments (`*.vercel.app`) can't be registered, and a property allows only one domain. Previews load without base-map tiles. Accepted for now; record it under open questions.
 
-- [ ] **Step 3: Verify the restriction**
+Don't set `NEXT_PUBLIC_TILE_KEY` in Vercel or `.env.local`. Remove it from `web/.env.example` and leave a comment in its place.
+
+- [x] **Step 3: Verify the restriction**
 
 Fill in the provider's tile URL template for tile `z=10, x=175, y=408`, which covers downtown LA, then run:
 
 ```bash
-TILE_URL='<template with z=10, x=175, y=408 and your key>'
-curl -s -o /dev/null -w '%{http_code}\n' -H "Referer: https://$SITE_HOST/" -H "Origin: https://$SITE_HOST" "$TILE_URL"
-curl -s -o /dev/null -w '%{http_code}\n' -H 'Referer: https://example.com/' -H 'Origin: https://example.com' "$TILE_URL"
+TILE_URL='<template with z=10, x=175, y=408, no api_key>'
+curl -s -o /dev/null -D - -H "Referer: https://$SITE_HOST/" -H "Origin: https://$SITE_HOST" "$TILE_URL" | grep -iE '^HTTP|stadia-property'
+curl -s -o /dev/null -w '%{http_code}\n' -H 'Referer: https://sowhat-unregistered.invalid/' -H 'Origin: https://sowhat-unregistered.invalid' "$TILE_URL"
 ```
-Expected: `200` for your host. The second call should be refused (`401` or `403`). If the provider only enforces restrictions in browsers, record that the second call succeeded from curl.
+Expected: `200` for your host, with a `stadia-property` header that matches your property's ID in the dashboard. The second call should be refused (`401` or `403`). Don't test with `example.com`: another Stadia customer has registered it, so it returns `200` (billed to property 12196). If the provider only enforces restrictions in browsers, record that the second call succeeded from curl. Domain auth trusts the `Referer`/`Origin` headers, so anyone can spoof them from curl; that's the provider's model, not a leak.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add docs/superpowers/spikes/2026-09-28-m0-findings.md
+git add docs/superpowers/spikes/2026-09-28-m0-findings.md web/.env.example docs/superpowers/plans/2026-09-28-m0-deployment-spike.md
 git commit -m "docs(spike): choose tile provider"
 ```
 
@@ -1233,7 +1238,9 @@ Make these edits in `docs/superpowers/specs/2026-09-27-so-what-design.md`:
 - **§4 and §7.1:** show `web/src/app/…` and `web/src/lib/…` instead of `web/app/…` and `web/lib/…`. Change `lib/db/schema.ts` to `src/lib/db/generated/schema.ts`, and note that `drizzle-kit pull` also writes `relations.ts` and a gitignored migration folder there. Tests stay at `web/tests/`.
 - **§7.2:** add a line saying `drizzle-kit pull` garbles some inline `CHECK` constraints, that this is harmless because there are no migrations, and that the file is still never hand-edited.
 - **§8.1:** name the chosen Vercel Functions region and Turso location.
-- **§7.4 "Map tiles":** replace "chosen in M0" with the chosen provider and its attribution.
+- **§7.4 "Map tiles":** replace "chosen in M0" with the chosen provider and its attribution. Replace "key in an env var, domain-restricted to …" with Stadia's domain-based auth for the production domain, no auth needed on localhost, and no tiles on Vercel previews.
+- **§8.1 "Env vars":** remove `NEXT_PUBLIC_TILE_KEY`.
+- **§9:** replace "Tile key restricted to the production domain, the project's Vercel preview domains, and localhost" with "No tile key ships to the browser; tiles are authorized by domain (production) and are open on localhost."
 - **§11:** change `drizzle-orm/tursodatabase-database` to `drizzle-orm/tursodatabase/database`, and "Chosen in M0" to "Chosen in M0: the embedded engine, opened with `connect(':memory:')`".
 
 - [ ] **Step 3: Finish the findings doc**
