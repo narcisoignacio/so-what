@@ -1,8 +1,19 @@
+# agent tooling: local settings, caches and working state
 .agents
-.claude
 .impeccable
-.DS_Store
+
+# Claude Code: ignored everywhere except web/'s project skills (run-web),
+# which are committed. Each line re-includes or re-ignores one level, in order.
+.claude
+!/web/.claude/
+/web/.claude/*
+!/web/.claude/skills/
+
+# personal working copies (the spec stays the source of truth)
 notes/
+
+# OS
+.DS_Store
 
 # pipeline output (spec §4)
 data/raw/
