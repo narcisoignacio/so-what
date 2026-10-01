@@ -259,6 +259,7 @@ Specified in spec §7.4: fixed data in `web/lib/tips.ts`, keyed by risk type, sh
 | Label on a trend line, and in the level slot of a sea card | Projected |
 | Collapsed line for a place with nothing flagged (spec §7.4) | Not flagged in current data for air pollution, heat or wildfire. |
 | Map legend, dashed pin with wave glyph | Projected coastal flooding by mid-century |
+| Map legend, pin with hatched badge | Flagged today, and projected coastal flooding by mid-century |
 | Map legend, neutral pin | Not flagged for any risk |
 | Card heading (spec §7.4) | {Risk} — {Level}, e.g. "Heat — High"; "Sea level rise — Projected" |
 | Link next to the first level badge in the panel | How levels work (to the About page's thresholds section) |
