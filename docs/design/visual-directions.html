@@ -174,27 +174,29 @@ body {
 
 /* ══ A · Field brochure ═════════════════════════════════════════════ */
 .dir-a .app {
-  --ink: #111111; --muted: #4f4f4f; --accent: #2330e0; --focus: #2330e0; --sel: #c9ccff;
+  --ink: #111111; --paper: #ffffff; --muted: #4f4f4f; --accent: #2330e0; --focus: #2330e0; --sel: #c9ccff;
+  --on-band: #ffffff; --band-muted: #d6d6d6; --band-label: #bdbdbd; --hair: #bbbbbb;
+  background: var(--paper); color: var(--ink);
   font-family: "Archivo", sans-serif; font-variation-settings: "wdth" 100;
   font-size: 16px; line-height: 1.45;
 }
-.dir-a .app-header { background: var(--ink); color: #fff; height: 64px; padding: 0 20px; }
-.dir-a .site-name { font-weight: 850; font-stretch: 75%; font-size: 30px; letter-spacing: -0.01em; color: #fff; }
-.dir-a .zip input { border: 0; background: #fff; color: var(--ink); }
-.dir-a .zip button { background: #fff; color: #111; border: 0; border-left: 1px solid #111; }
+.dir-a .app-header { background: var(--ink); color: var(--on-band); height: 64px; padding: 0 20px; }
+.dir-a .site-name { font-weight: 850; font-stretch: 75%; font-size: 30px; letter-spacing: -0.01em; color: var(--on-band); }
+.dir-a .zip input { border: 0; background: var(--paper); color: var(--ink); }
+.dir-a .zip button { background: var(--paper); color: var(--ink); border: 0; border-left: 1px solid var(--ink); }
 .dir-a .region-label { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .dir-a .panel { border-right: 2px solid var(--ink); }
 .dir-a .panel-top { padding: 12px 20px 0; }
 .dir-a .back { font-size: 15px; font-weight: 600; }
-.dir-a .place-head { background: var(--ink); color: #fff; padding: 14px 20px 18px; margin-top: 12px; }
-.dir-a .place-head .region-label { color: #bdbdbd; margin-bottom: 8px; }
+.dir-a .place-head { background: var(--ink); color: var(--on-band); padding: 14px 20px 18px; margin-top: 12px; }
+.dir-a .place-head .region-label { color: var(--band-label); margin-bottom: 8px; }
 .dir-a .place-name { font-weight: 850; font-stretch: 72%; font-size: 40px; line-height: 1; letter-spacing: -0.01em; }
-.dir-a .kind { font-weight: 600; margin-top: 8px; font-size: 16px; color: #d6d6d6; }
-.dir-a .share { position: absolute; right: 12px; top: 8px; background: none; border: 1.5px solid #fff; color: #fff; padding: 0 14px; font-weight: 600; min-height: 36px; }
+.dir-a .kind { font-weight: 600; margin-top: 8px; font-size: 16px; color: var(--band-muted); }
+.dir-a .share { position: absolute; right: 12px; top: 8px; background: none; border: 1.5px solid var(--on-band); color: var(--on-band); padding: 0 14px; font-weight: 600; min-height: 36px; }
 .dir-a .glance-wrap { padding: 16px 20px; border-bottom: 2px solid var(--ink); }
 .dir-a .chip { border: 1.5px solid var(--ink); padding: 0 10px 0 0; font-weight: 600; font-size: 15px; }
 .dir-a .chip .plate { width: 30px; height: 30px; }
-.dir-a .plate { background: var(--ink); color: #fff; display: grid; place-items: center; width: 32px; height: 32px; flex: none; --gs: 20px; }
+.dir-a .plate { background: var(--ink); color: var(--on-band); display: grid; place-items: center; width: 32px; height: 32px; flex: none; --gs: 20px; }
 .dir-a .card { padding: 20px; border-bottom: 2px solid var(--ink); display: grid; gap: 12px; }
 .dir-a .risk-level { font-weight: 750; font-size: 18px; }
 .dir-a .card-head .how { flex-basis: 100%; margin-left: 42px; margin-top: -6px; }
@@ -210,20 +212,63 @@ body {
 .dir-a .card.is-proj .risk-level { display: flex; align-items: center; gap: 10px; }
 .dir-a .nearby { padding: 24px 20px 32px; }
 .dir-a .list-head h2 { font-size: 22px; font-weight: 800; font-stretch: 80%; }
-.dir-a .nearby li { padding: 12px 0; border-top: 1px solid #bbb; }
+.dir-a .nearby li { padding: 12px 0; border-top: 1px solid var(--hair); }
 .dir-a .nearby li a { font-weight: 650; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .dir-a .nearby li p { margin: 2px 0 0; font-size: 15px; color: var(--muted); }
 .dir-a .switch { font-size: 15px; font-weight: 600; background: none; border: 0; padding: 0; min-height: 24px; }
-.dir-a .switch-track { border: 1.5px solid var(--ink); background: #fff; }
+.dir-a .switch-track { border: 1.5px solid var(--ink); background: var(--paper); }
 .dir-a .switch-track::after { background: var(--ink); top: 1.5px; left: 1.5px; }
 .dir-a .switch[aria-checked="true"] .switch-track { background: var(--ink); }
-.dir-a .switch[aria-checked="true"] .switch-track::after { background: #fff; }
-.dir-a .map-label { position: absolute; left: 0; top: 0; background: var(--ink); color: #fff; padding: 6px 12px; z-index: 2; }
-.dir-a .legend { background: #fff; border: 2px solid var(--ink); }
-.dir-a .legend-toggle { background: var(--ink); color: #fff; border: 0; padding: 0 12px; font-weight: 700; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+.dir-a .switch[aria-checked="true"] .switch-track::after { background: var(--paper); }
+.dir-a .map-label { position: absolute; left: 0; top: 0; background: var(--ink); color: var(--on-band); padding: 6px 12px; z-index: 2; }
+.dir-a .legend { background: var(--paper); border: 2px solid var(--ink); }
+.dir-a .legend-toggle { background: var(--ink); color: var(--on-band); border: 0; padding: 0 12px; font-weight: 700; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
 .dir-a .legend-body { padding: 12px; }
-.dir-a .legend-body .switch { margin-top: 12px; padding-top: 12px; border-top: 1px solid #bbb; width: 100%; }
-.dir-a .map-tools button { background: #fff; border: 2px solid var(--ink); font-weight: 600; }
+.dir-a .legend-body .switch { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hair); width: 100%; }
+.dir-a .map-tools button { background: var(--paper); color: var(--ink); border: 2px solid var(--ink); font-weight: 600; }
+
+/* A, revised: softened slate and paper, one dark band (the place title). */
+.dir-a2 .app {
+  --ink: #262a2e; --paper: #f5f6f4; --muted: #585d62;
+  --on-band: #f5f6f4; --band-muted: #c9ced3; --band-label: #aeb4ba; --hair: #c4c8cb;
+}
+.dir-a2 .app-header { background: var(--paper); color: var(--ink); border-bottom: 2px solid var(--ink); }
+.dir-a2 .site-name { color: var(--ink); }
+.dir-a2 .zip input { border: 1.5px solid var(--ink); border-right: 0; background: #fff; }
+.dir-a2 .zip button { background: var(--ink); color: var(--paper); border: 0; }
+.dir-a2 .place-head { margin-top: 8px; }
+/* Share stays in the band, small: it shares the row with the "Place" label. */
+.dir-a2 .band-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 32px; margin: -6px 0 6px; }
+.dir-a2 .place-head .region-label { margin-bottom: 0; }
+.dir-a2 .place-head .share { position: static; background: none; border: 0; color: var(--on-band); min-height: 32px; padding: 0 6px; margin-right: -6px; font-size: 15px; font-weight: 600; }
+.dir-a2 .place-head .share:hover { text-decoration: underline; text-underline-offset: 3px; }
+.dir-a2 .place-head :focus-visible { outline-color: var(--on-band); }
+/* Card heading: plate in its own column; title, meter and link share one left edge. */
+.dir-a2 .card-head { display: grid; grid-template-columns: 32px 1fr; column-gap: 12px; row-gap: 2px; align-items: start; }
+.dir-a2 .card-head .risk-level { grid-column: 2; padding-top: 3px; }
+.dir-a2 .card-head .how { grid-column: 2; margin: 0; }
+.dir-a2 .card.is-proj .risk-level { display: block; }
+.dir-a2 .card.is-proj .risk-level .proj { vertical-align: 1px; margin-right: 0; }
+.dir-a2 .risk-level .meter-inline { display: inline-block; vertical-align: -3px; margin-left: 8px; line-height: 0; }
+/* Zoom */
+.zoom { display: flex; flex-direction: column; }
+.zoom button { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; }
+.zoom .ri { width: 18px; height: 18px; }
+.dir-a .zoom { border: 2px solid var(--ink); background: var(--paper); }
+.dir-a .zoom button { background: var(--paper); color: var(--ink); border: 0; min-height: 0; }
+.dir-a .zoom button + button { border-top: 1px solid var(--hair); }
+.dir-a .zoom button:disabled { color: var(--hair); cursor: default; }
+.b-tiles { font: inherit; font-size: 13px; margin-left: 6px; padding: 2px 10px; border: 1px solid var(--b-line); background: var(--b-surface); color: var(--b-fg); border-radius: 4px; cursor: pointer; }
+
+/* Pin close-up */
+.closeup { margin: 24px 0 0; background: var(--b-surface); border: 1px solid var(--b-line); padding: 20px; overflow-x: auto; }
+.closeup h3 { margin: 0 0 4px; font-size: 17px; }
+.closeup > p { margin: 0 0 16px; color: var(--b-muted); font-size: 15px; max-width: 70ch; }
+.closeup table { border-collapse: collapse; }
+.closeup th { font-size: 13px; font-weight: 600; text-align: left; padding: 0 12px 8px 0; color: var(--b-muted); white-space: nowrap; }
+.closeup td { padding: 0 8px 8px 0; }
+.closeup .cell { width: 150px; height: 120px; display: grid; place-items: center; background-size: 512px 512px; background-position: center; }
+.closeup .cell > div { transform: scale(2); line-height: 0; }
 
 /* ══ B · Street atlas ═══════════════════════════════════════════════ */
 .dir-b .app {
@@ -369,10 +414,13 @@ body {
   <symbol id="arrow-l" viewBox="0 0 16 16"><path d="M13 8H3M7 4L3 8l4 4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="chev" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></symbol>
-  <symbol id="share" viewBox="0 0 16 16"><path d="M8 10V2.5M5 5.5l3-3 3 3M3.5 8.5v5h9v-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></symbol>
+  <symbol id="minus" viewBox="0 0 16 16"><path d="M3 8h10" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></symbol>
+  <symbol id="share"viewBox="0 0 16 16"><path d="M8 10V2.5M5 5.5l3-3 3 3M3.5 8.5v5h9v-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <defs>
     <pattern id="hatch-dark" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="#fff"/><line x1="0" y1="0" x2="0" y2="4" stroke="#111" stroke-width="1.3"/></pattern>
     <pattern id="hatch-violet" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="#fff"/><line x1="0" y1="0" x2="0" y2="4" stroke="#4b1d8f" stroke-width="1.3"/></pattern>
+    <pattern id="hatch-slate" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="#fff"/><line x1="0" y1="0" x2="0" y2="4" stroke="#262a2e" stroke-width="1.3"/></pattern>
     <pattern id="hatch-grey" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="#fff"/><line x1="0" y1="0" x2="0" y2="4" stroke="#5f6368" stroke-width="1.3"/></pattern>
   </defs>
 </svg>
@@ -406,6 +454,33 @@ body {
     <div class="frames">
       <div class="frame-wrap"><p class="frame-cap"><b>Desktop</b> · place page, light tiles · scroll the panel</p><div class="scroller"><div class="frame-desk" data-frame="a-desk"></div></div></div>
       <div class="frame-wrap"><p class="frame-cap"><b>320px</b> · place panel</p><div class="scroller"><div class="frame-phone" data-frame="a-phone"></div></div></div>
+    </div>
+  </section>
+
+  <!-- ── A, revised ────────────────────────────────────── -->
+  <section class="dir dir-a dir-a2" aria-labelledby="dir-a2-h">
+    <div class="dir-intro">
+      <div>
+        <h2 id="dir-a2-h">A, revised · after your comments</h2>
+        <p class="source">Same world. The desktop map opens on dark tiles, because that's where comments 1 and 3 showed up.</p>
+        <p class="thesis">Quieter ink and paper, one dark band instead of two, a selected ring that reads on any tile, and a sea-level glyph you can actually see.</p>
+      </div>
+      <dl class="dir-facts">
+        <div><dt>1 · Selected ring</dt><dd>Ultramarine kept, but set between two white rings, so it only ever touches white (about 8.8:1) on any tile. Before, it was about 2.0:1 on the dark tiles.</dd></div>
+        <div><dt>2 · Calmer contrast</dt><dd>Slate <code>#262a2e</code> on off-white <code>#f5f6f4</code> (about 13:1, down from 19:1). The site header is now paper with a slate rule; the place title keeps the only dark band.<div class="swatches" aria-hidden="true"><span style="background:#262a2e"></span><span style="background:#f5f6f4"></span><span style="background:#585d62"></span><span style="background:#2330e0"></span></div></dd></div>
+        <div><dt>3 · Glyph vs. hatch</dt><dd>Where there's room, the glyph: the projected-only pin keeps its dashed outline, with the wave glyph larger on a clean white disc and no hatch behind it. Where there isn't, the hatch: a pin with today's level plus projected flooding gets a small hatched badge instead of a 10px glyph.</dd></div>
+        <div><dt>4 · Zoom</dt><dd>A +/− pair at the map's top-right, 44px squares in the band's slate. It works here, between zoom 13 and 17. The tile switch moved to the frame caption, because it's a board control, not app UI.</dd></div>
+        <div><dt>5 · Share</dt><dd>Still in the band, where it clearly shares this place, but small: icon and word with no outline, on the same row as the "Place" label. Its focus ring uses the band's light ink, because ultramarine on slate is only about 2:1.</dd></div>
+        <div><dt>6 · Alignment</dt><dd>The band is one left-aligned stack. Card headings use two columns: the plate, then the title with its meter directly after the level word and "How levels work" under the same left edge.</dd></div>
+      </dl>
+    </div>
+    <div class="frames">
+      <div class="frame-wrap"><p class="frame-cap"><b>Desktop</b> · place page · scroll the panel · <button class="b-tiles" data-for="a2-desk" aria-pressed="true">Tiles: dark</button></p><div class="scroller"><div class="frame-desk" data-frame="a2-desk"></div></div></div>
+      <div class="frame-wrap"><p class="frame-cap"><b>320px</b> · place panel</p><div class="scroller"><div class="frame-phone" data-frame="a2-phone"></div></div></div>
+    </div>
+    <div class="closeup" data-closeup>
+      <h3>Pins up close, at 2×</h3>
+      <p>The same three pins, before and after, over a patch of each tile style. The ring and the badge are the parts comments 1 and 3 were about.</p>
     </div>
   </section>
 
@@ -530,6 +605,7 @@ body {
   const STYLE = {
     a: { shape: "circle", fills: ["#e6e6e6", "#8a8a8a", "#1a1a1a"], meter: ["#111", "#fff", "#fff"], ring: "#2330e0", hatch: "hatch-dark", cluster: ["#111", "#fff"], plate: "a" },
     b: { shape: "square", fills: ["#e4d9f5", "#9b6ad6", "#4b1d8f"], meter: ["#2a1050", "#fff", "#fff"], ring: "#f7c600", hatch: "hatch-violet", cluster: ["#4b1d8f", "#fff"], plate: "b" },
+    a2: { shape: "circle", fills: ["#e6e6e6", "#8a8a8a", "#262a2e"], meter: ["#262a2e", "#fff", "#fff"], ring: "#2330e0", hatch: "hatch-slate", cluster: ["#262a2e", "#fff"], plate: "a", outline: "#1d2124", sandwich: true, cleanSea: true, hatchBadge: true },
     c: { shape: "drop", fills: ["#fed976", "#fd8d3c", "#bd0026"], meter: ["#5a2a00", "#2a0e00", "#fff"], ring: "#1a66d6", hatch: "hatch-grey", cluster: ["#fff", "#1f1f1f"], plate: "c" },
   };
 
@@ -562,8 +638,9 @@ body {
     }
     const seaOnly = opt.sea === "only";
     const lvl = opt.level || 0;
-    const fill = seaOnly ? `url(#${st.hatch})` : st.fills[lvl - 1];
-    const mc = seaOnly ? "#111" : st.meter[lvl - 1];
+    const oc = st.outline || "#111";
+    const fill = seaOnly ? (st.cleanSea ? "#fff" : `url(#${st.hatch})`) : st.fills[lvl - 1];
+    const mc = seaOnly ? oc : st.meter[lvl - 1];
     const dash = seaOnly ? ` stroke-dasharray="3 2.2"` : "";
     const s = opt.selected ? 1.25 : 1;
     let shape, inner, box, anchor = "center";
@@ -577,7 +654,7 @@ body {
       });
       return m;
     };
-    const wave = (cx, cy, r) => `<svg x="${cx - r}" y="${cy - r}" width="${2 * r}" height="${2 * r}" viewBox="0 0 24 24" color="#111"><use href="#sea"/></svg>`;
+    const wave = (cx, cy, r) => `<svg x="${cx - r}" y="${cy - r}" width="${2 * r}" height="${2 * r}" viewBox="0 0 24 24" color="${oc}"><use href="#sea"/></svg>`;
     if (st.shape === "drop") {
       const p = "M0 0 C0 0 -12 -14 -12 -22 A12 12 0 1 1 12 -22 C12 -14 0 0 0 0Z";
       shape = (extra) => `<path d="${p}" ${extra}/>`;
@@ -591,17 +668,24 @@ body {
       var badgeAt = [11, -11], ringShape = `<rect x="-18" y="-18" width="36" height="36" rx="3" fill="none" stroke="${st.ring}" stroke-width="5"/><rect x="-20.5" y="-20.5" width="41" height="41" rx="4" fill="none" stroke="#111" stroke-width="1.2"/>`;
     } else {
       shape = (extra) => `<circle r="13" ${extra}/>`;
-      inner = seaOnly ? `<circle r="7.5" fill="#fff"/>${wave(0, 0, 7)}` : meter(0, 0);
-      box = "-22 -22 44 44";
-      var badgeAt = [11, -11], ringShape = `<circle r="18.5" fill="none" stroke="${st.ring}" stroke-width="3.5"/>`;
+      inner = seaOnly
+        ? (st.cleanSea ? wave(0, 0.5, 9) : `<circle r="7.5" fill="#fff"/>${wave(0, 0, 7)}`)
+        : meter(0, 0);
+      box = st.sandwich ? "-24 -24 48 48" : "-22 -22 44 44";
+      var badgeAt = [11, -11], ringShape = st.sandwich
+        ? `<circle r="18.5" fill="none" stroke="#fff" stroke-width="8.5"/><circle r="18.5" fill="none" stroke="${st.ring}" stroke-width="3.5"/>`
+        : `<circle r="18.5" fill="none" stroke="${st.ring}" stroke-width="3.5"/>`;
     }
     const badge = opt.sea === true
-      ? `<g transform="translate(${badgeAt[0]} ${badgeAt[1]})"><circle r="7" fill="#fff" stroke="#111" stroke-width="1.3"/>${wave(0, 0, 5)}</g>` : "";
+      ? (st.hatchBadge
+        ? `<g transform="translate(${badgeAt[0]} ${badgeAt[1]})"><circle r="6.5" fill="none" stroke="#fff" stroke-width="3"/><circle r="6.5" fill="url(#${st.hatch})" stroke="${oc}" stroke-width="1.3"/></g>`
+        : `<g transform="translate(${badgeAt[0]} ${badgeAt[1]})"><circle r="7" fill="#fff" stroke="#111" stroke-width="1.3"/>${wave(0, 0, 5)}</g>`)
+      : "";
     const [bx, by, bw2, bh2] = box.split(" ").map(Number);
     const html = `<svg width="${bw2 * s}" height="${bh2 * s}" viewBox="${box}" aria-hidden="true">
       ${opt.selected ? ringShape : ""}
       ${shape(`fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="round"`)}
-      ${shape(`fill="${fill}" stroke="#111" stroke-width="1.5"${dash} stroke-linejoin="round"`)}
+      ${shape(`fill="${fill}" stroke="${oc}" stroke-width="1.5"${dash} stroke-linejoin="round"`)}
       ${inner}${badge}</svg>`;
     return { html, anchor };
   }
@@ -631,7 +715,9 @@ body {
       ? `${esc(c.name)} <span class="visually-hidden">—</span>`
       : `${esc(c.name)} — ${LEVELS[c.level]}`;
     return `<section class="card" aria-labelledby="h-${d}-${c.risk}-${i}">
-      <h3 class="card-head" id="h-${d}-${c.risk}-${i}">${plate(d, c.risk)}<span class="risk-level">${d === "c" ? `${esc(c.name)}<span class="badge l${c.level}">${LEVELS[c.level]}</span>` : title}</span>${d === "c" ? "" : levelBit(d, c.level)}${i === 0 ? `<a class="how" href="#">How levels work</a>` : ""}</h3>
+      ${d === "a2"
+        ? `<h3 class="card-head" id="h-${d}-${c.risk}-${i}">${plate(d, c.risk)}<span class="risk-level">${title}<span class="meter-inline">${meterSvg(c.level, 20)}</span></span>${i === 0 ? `<a class="how" href="#">How levels work</a>` : ""}</h3>`
+        : `<h3 class="card-head" id="h-${d}-${c.risk}-${i}">${plate(d, c.risk)}<span class="risk-level">${d === "c" ? `${esc(c.name)}<span class="badge l${c.level}">${LEVELS[c.level]}</span>` : title}</span>${d === "c" ? "" : levelBit(d, c.level)}${i === 0 ? `<a class="how" href="#">How levels work</a>` : ""}</h3>`}
       <p class="so-what">${esc(c.soWhat)}</p>
       ${c.trend ? `<p class="trend">${hatchLabel()} ${esc(c.trend)}</p>` : ""}
       ${dataBits(c)}
@@ -662,13 +748,13 @@ body {
   }
   function panelHtml(d) {
     const regionPlace = `<span class="region-label">Place</span>`;
-    return `<div class="panel ${d === "a" ? "dir-a-panel" : ""}" role="region" aria-label="Place">
+    return `<div class="panel ${d[0] === "a" ? "dir-a-panel" : ""}" role="region" aria-label="Place">
       <div class="panel-top"><a class="back" href="#">${icon("arrow-l")} Places near here</a></div>
       <div class="place-head">
-        ${regionPlace}
+        ${d === "a2" ? `<div class="band-top">${regionPlace}<button class="share">${icon("share")} Share</button></div>` : regionPlace}
         <h2 class="place-name">${esc(PLACE.name)}</h2>
         <p class="kind">${PLACE.kind}</p>
-        <button class="share">${icon("share")} Share</button>
+        ${d === "a2" ? "" : `<button class="share">${icon("share")} Share</button>`}
       </div>
       <div class="glance-wrap"><nav aria-label="Risks at this place"><ul class="glance">
         ${chip(d, "air", "Air pollution — Severe")}
@@ -693,6 +779,7 @@ body {
         <li>${small(sw({ level: 2 }))}<span>High</span></li>
         <li>${small(sw({ level: 3 }))}<span>Severe (the highest level at the place)</span></li>
         <li>${small(sw({ sea: "only" }))}<span class="legend-proj"><span class="hatch" aria-hidden="true"></span><span>Projected coastal flooding by mid-century</span></span></li>
+        ${STYLE[d].hatchBadge ? `<li>${small(sw({ level: 3, sea: true }))}<span>Flagged today, and projected coastal flooding by mid-century</span></li>` : ""}
         <li>${small(sw({ neutral: true }))}<span>Not flagged for any risk</span></li>
       </ul>${switchHtml(d, "Show unflagged places", true)}</div>
     </div>`;
@@ -710,7 +797,9 @@ body {
         <p class="map-notice">The map background isn't loading. Serve this board from localhost to see the Stadia tiles. Places and the list still work.</p>
         <div class="attrib">© <a href="https://stadiamaps.com/attribution/">Stadia Maps</a>, © <a href="https://openmaptiles.org/">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a></div>
       </div>
-      <div class="map-tools"><button class="tile-toggle" aria-pressed="false">Dark tiles</button></div>
+      <div class="map-tools">${d === "a2"
+        ? `<div class="zoom" role="group" aria-label="Zoom"><button data-zoom="1" aria-label="Zoom in">${icon("plus")}</button><button data-zoom="-1" aria-label="Zoom out">${icon("minus")}</button></div>`
+        : `<button class="tile-toggle" aria-pressed="false">Dark tiles</button>`}</div>
       ${legendHtml(d)}
     </div>`;
   }
@@ -721,7 +810,7 @@ body {
   }
   function renderMap(map) {
     const d = map.dataset.dir, dark = map.classList.contains("dark");
-    const z = 15, w = map.clientWidth, h = map.clientHeight;
+    const z = Number(map.dataset.z || 15), w = map.clientWidth, h = map.clientHeight;
     if (!w || !h) return;
     const [cx, cy] = project(PLACE.lat - 0.0012, PLACE.lon - 0.0035, z);
     const ox = cx - w / 2, oy = cy - h / 2;
@@ -754,7 +843,7 @@ body {
   document.querySelectorAll("[data-frame]").forEach((el) => {
     const [d, kind] = el.dataset.frame.split("-");
     el.innerHTML = `<div class="app">
-      <header class="app-header ${d === "a" ? "dir-a-scope" : ""}">
+      <header class="app-header ${d[0] === "a" ? "dir-a-scope" : ""}">
         <a class="site-name" href="#">So What?</a>
         <form class="zip" role="search" onsubmit="return false"><label class="visually-hidden" for="zip-${d}-${kind}" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Zip code</label><input id="zip-${d}-${kind}" inputmode="numeric" placeholder="Zip code" autocomplete="postal-code"><button aria-label="Search">${icon("search")}</button></form>
       </header>
@@ -764,7 +853,20 @@ body {
   document.querySelectorAll(".visually-hidden").forEach((n) => { n.style.cssText = "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap"; });
 
   const maps = [...document.querySelectorAll(".map")];
+  maps.filter((m) => m.dataset.dir === "a2").forEach((m) => m.classList.add("dark"));
   const renderAll = () => maps.forEach(renderMap);
+
+  // Pin close-up: before (a) and after (a2), on a patch of each tile style.
+  const closeup = document.querySelector("[data-closeup]");
+  if (closeup) {
+    const [px, py] = project(PLACE.lat, PLACE.lon - 0.004, 15);
+    const tile = (style) => `https://tiles.stadiamaps.com/tiles/${style}/15/${Math.floor(px / 256)}/${Math.floor(py / 256)}@2x.png`;
+    const cols = [["Selected", { level: 3, sea: true, selected: true }], ["Projected only", { sea: "only" }], ["Today + projected", { level: 2, sea: true }]];
+    const rows = [["Before · light", "a", "alidade_smooth"], ["After · light", "a2", "alidade_smooth"], ["Before · dark", "a", "alidade_smooth_dark"], ["After · dark", "a2", "alidade_smooth_dark"]];
+    closeup.insertAdjacentHTML("beforeend", `<table><thead><tr><td></td>${cols.map(([n]) => `<th scope="col">${n}</th>`).join("")}</tr></thead><tbody>${
+      rows.map(([label, d, style]) => `<tr><th scope="row">${label}</th>${cols.map(([, opt]) => `<td><div class="cell" style="background-image:url(${tile(style)})"><div>${pinSvg(d, opt).html}</div></div></td>`).join("")}</tr>`).join("")
+    }</tbody></table>`);
+  }
   requestAnimationFrame(renderAll);
 
   document.addEventListener("click", (e) => {
@@ -779,6 +881,20 @@ body {
     } else if (t.classList.contains("legend-toggle")) {
       const lg = t.closest(".legend"), open = lg.dataset.open !== "true";
       lg.dataset.open = open; t.setAttribute("aria-expanded", open);
+    } else if (t.dataset.zoom) {
+      const col = t.closest(".map-col"), map = col.querySelector(".map");
+      const z = Math.min(17, Math.max(13, Number(map.dataset.z || 15) + Number(t.dataset.zoom)));
+      map.dataset.z = z;
+      col.querySelector('[data-zoom="1"]').disabled = z === 17;
+      col.querySelector('[data-zoom="-1"]').disabled = z === 13;
+      renderMap(map);
+    } else if (t.classList.contains("b-tiles")) {
+      const map = document.querySelector(`[data-frame="${t.dataset.for}"] .map`);
+      const dark = !map.classList.contains("dark");
+      map.classList.toggle("dark", dark);
+      t.setAttribute("aria-pressed", dark);
+      t.textContent = dark ? "Tiles: dark" : "Tiles: light";
+      renderMap(map);
     } else if (t.classList.contains("tile-toggle")) {
       const map = t.closest(".map-col").querySelector(".map");
       const dark = !map.classList.contains("dark");
