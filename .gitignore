@@ -20,3 +20,6 @@ data/raw/
 data/sowhat-*.db
 data/sowhat-*.db-wal
 data/sowhat-*.db-shm
+.vercel
+.env*
+!.env.example
