@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>So What? Mockups</title>
+<meta name="description" content="Design mockups and wireframes for So What?, a map of climate risks at everyday places in LA County.">
+<meta name="robots" content="noindex">
+<style>
+  :root {
+    --bg: #f5f6f4; --fg: #262a2e; --muted: #5a6066; --line: #d6d8d4; --card: #ffffff; --link: #2b3bb8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #16181b; --fg: #e8e9e6; --muted: #a3a8ae; --line: #33373c; --card: #1f2226; --link: #a9b1ff; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 44rem; margin: 0 auto; padding: 3rem 16px 4rem; }
+  h1 { font-size: 2.2rem; margin: 0 0 .5rem; letter-spacing: -.01em; }
+  .lede { font-size: 1.15rem; margin: 0 0 1rem; }
+  p { margin: 0 0 1rem; }
+  .note { color: var(--muted); font-size: .95rem; }
+  h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 2.5rem 0 .75rem; }
+  ol { list-style: none; padding: 0; margin: 0; display: grid; gap: .75rem; }
+  li a {
+    display: block; padding: 1rem 1.1rem; background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; color: inherit; text-decoration: none;
+  }
+  li a:hover { border-color: var(--link); }
+  li a:focus-visible { outline: 3px solid var(--link); outline-offset: 2px; }
+  .t { display: block; font-weight: 650; color: var(--link); margin-bottom: .2rem; }
+  .d { display: block; color: var(--muted); font-size: .95rem; }
+  a { color: var(--link); }
+  footer { margin-top: 3rem; color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>So What?</h1>
+  <p class="lede">An interactive map of Los Angeles County that pins everyday places (bus stops, parks, playgrounds, schools) and says, in one plain sentence, what each climate risk there means for a person standing at that place.</p>
+  <p>It covers air pollution, heat and wildfire from current data, plus sea level rise as a projection. It's a CS50x final project in progress, and these pages show the design decided so far, before the map is built.</p>
+  <p class="note">Every place, number and sentence in these mockups is illustrative, not real data.</p>
+
+  <h2>Start here</h2>
+  <ol>
+    <li><a href="/mockups/journeys/2026-09-28-grader-first-30-seconds.html">
+      <span class="t">First 30 seconds</span>
+      <span class="d">What someone who has never been to LA sees and understands in their first half-minute on the site.</span>
+    </a></li>
+    <li><a href="/mockups/design/visual-direction.html">
+      <span class="t">Visual direction</span>
+      <span class="d">The chosen look, on a place panel and a live map crop at desktop and phone widths, plus the map pins up close.</span>
+    </a></li>
+  </ol>
+
+  <h2>Wireframes</h2>
+  <ol>
+    <li><a href="/mockups/wireframes/wireframes-place-panel.html">
+      <span class="t">Place panel</span>
+      <span class="d">The panel for a single place: risk cards led by the "So What?" sentence, the projected trend line, sources, and nearby places.</span>
+    </a></li>
+    <li><a href="/mockups/wireframes/wireframes-glyphs-thumbnails.html">
+      <span class="t">Glyphs and filters</span>
+      <span class="d">The level meter, card headings, at-a-glance chips, and the "Unflagged" switch.</span>
+    </a></li>
+  </ol>
+
+  <h2>Icons</h2>
+  <ol>
+    <li><a href="/mockups/design/risk-icons.html">
+      <span class="t">Risk icons</span>
+      <span class="d">The four risk icons (air, heat, wildfire, sea level rise) in the sizes and places they're used.</span>
+    </a></li>
+  </ol>
+
+  <footer>
+    Code, spec and data plan: <a href="https://github.com/narcisoignacio/so-what">github.com/narcisoignacio/so-what</a>
+  </footer>
+</main>
+</body>
+</html>
